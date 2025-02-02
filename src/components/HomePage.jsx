@@ -1,43 +1,45 @@
-import { FaHeart, FaClock, FaLeaf } from 'react-icons/fa';
-import { useState } from 'react';
-const acaiBowl = new URL('../assets/acai-bowl.png', import.meta.url).href;
-const smoothie = new URL('../assets/smoothie.png', import.meta.url).href;
-const smoothie2 = new URL('../assets/smoothie2.png', import.meta.url).href;
+import { FaHeart, FaClock, FaLeaf } from "react-icons/fa";
+import { useState } from "react";
+import FeaturedItem from "./FeaturedItems";
+const acaiBowl = new URL("../assets/acai-bowl.png", import.meta.url).href;
+const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
+const smoothie2 = new URL("../assets/smoothie2.png", import.meta.url).href;
 const HomePage = () => {
   const [cartItems, setCartItems] = useState([]);
-  
+
   // Temporary data - replace with API calls
   const featuredItems = [
     {
       id: 1,
-      name: 'Classic Açaí Bowl',
+      name: "Classic Açaí Bowl",
       price: 9.99,
-      description: 'Organic açaí topped with granola and seasonal fruits',
-      image: acaiBowl
+      fsf: 1.055,
+      description: "Organic açaí topped with granola and seasonal fruits",
+      image: acaiBowl,
     },
     {
       id: 2,
-      name: 'Tropical Smoothie',
+      name: "Tropical Smoothie",
       price: 7.99,
-      description: 'Mango, pineapple, and coconut milk blend',
-      image: smoothie
+      fsf: 1.055,
+      description: "Mango, pineapple, and coconut milk blend",
+      image: smoothie,
     },
     {
       id: 3,
-      name: 'Merry Berry Smoothie',
+      name: "Merry Berry Smoothie",
       price: 8.99,
-      description: 'Strawberry, blueberry, and banana blend',
-      image: smoothie2
-    }
+      fsf: 1.055,
+      description: "Strawberry, blueberry, and banana blend",
+      image: smoothie2,
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="bg-gradient-to-b from-purple-500 to-violet-900 text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-5xl font-bold mb-6">
-            Craft Your Perfect Bowl
-          </h1>
+          <h1 className="text-5xl font-bold mb-6">Craft Your Perfect Bowl</h1>
           <p className="text-xl mb-8">
             Fresh ingredients, endless combinations
           </p>
@@ -45,9 +47,8 @@ const HomePage = () => {
             <button className="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-gray-100 transition-colors shadow-md">
               Start Your Order
             </button>
+          </div>
         </div>
-        </div>
-        
       </section>
 
       {/* Featured Items */}
@@ -57,32 +58,7 @@ const HomePage = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredItems.map((item) => (
-            <div 
-              key={item.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow"
-            >
-              <img 
-                src={item.image} 
-                alt={item.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-                <p className="text-gray-600 mb-4">{item.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-purple-700">
-                    ${item.price}
-                  </span>
-                  <button 
-                    onClick={() => {/* Add to cart logic */}}
-                    className="bg-purple-700 text-white px-4 py-2 rounded-full
-                      hover:bg-berry-darkred transition-colors"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </div>
+            <FeaturedItem key={item.id} item={item} />
           ))}
         </div>
       </section>
@@ -107,8 +83,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      
     </div>
   );
 };
