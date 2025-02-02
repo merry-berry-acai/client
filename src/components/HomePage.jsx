@@ -2,6 +2,7 @@ import { FaHeart, FaClock, FaLeaf } from 'react-icons/fa';
 import { useState } from 'react';
 const acaiBowl = new URL('../assets/acai-bowl.png', import.meta.url).href;
 const smoothie = new URL('../assets/smoothie.png', import.meta.url).href;
+const smoothie2 = new URL('../assets/smoothie2.png', import.meta.url).href;
 const HomePage = () => {
   const [cartItems, setCartItems] = useState([]);
   
@@ -20,6 +21,13 @@ const HomePage = () => {
       price: 7.99,
       description: 'Mango, pineapple, and coconut milk blend',
       image: smoothie
+    },
+    {
+      id: 3,
+      name: 'Merry Berry Smoothie',
+      price: 8.99,
+      description: 'Strawberry, blueberry, and banana blend',
+      image: smoothie2
     }
   ];
 
