@@ -1,16 +1,16 @@
 const Footer = () => {
   return (
-    <footer className='bg-gray-800 text-white py-12'>
+    <footer className='bg-violet-900 text-white py-12'>
       <div className='max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8'>
         <div>
           <h4 className='text-xl font-bold mb-4'>Merry Berry</h4>
-          <p className='text-gray-400'>
+          <p className='text-gray-300'>
             Fresh, healthy, and delicious smoothies & bowls
           </p>
         </div>
         <div>
           <h4 className='text-xl font-bold mb-4'>Quick Links</h4>
-          <ul className='space-y-2 text-gray-400'>
+          <ul className='space-y-2 text-gray-300'>
             <li>
               <a href='/menu' className='hover:text-white'>
                 Menu
@@ -30,7 +30,7 @@ const Footer = () => {
         </div>
         <div>
           <h4 className='text-xl font-bold mb-4'>Legal</h4>
-          <ul className='space-y-2 text-gray-400'>
+          <ul className='space-y-2 text-gray-300'>
             <li>
               <a href='/privacy' className='hover:text-white'>
                 Privacy
