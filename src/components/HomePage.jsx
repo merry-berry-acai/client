@@ -1,6 +1,7 @@
 import { FaHeart, FaClock, FaLeaf } from "react-icons/fa";
 import { useState } from "react";
 import FeaturedItem from "./FeaturedItems";
+import { Link } from "react-router-dom";
 const acaiBowl = new URL("../assets/acai-bowl.png", import.meta.url).href;
 const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
 const smoothie2 = new URL("../assets/smoothie2.png", import.meta.url).href;
@@ -44,9 +45,9 @@ const HomePage = () => {
             Fresh ingredients, endless combinations
           </p>
           <div className="flex justify-center">
-            <button className="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-gray-100 transition-colors shadow-md">
+            <Link to="/order" className="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-gray-100 transition-colors shadow-md">
               Start Your Order
-            </button>
+            </Link>
           </div>
         </div>
       </section>

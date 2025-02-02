@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 
 function FeaturedItem({ item }) {
   const [showModal, setShowModal] = useState(false);
@@ -21,7 +22,8 @@ function FeaturedItem({ item }) {
           </div>
           <button
             onClick={() => {
-              /* Add to cart logic */
+              // Add to cart logic
+              toast.success(`${item.name} added to cart!`);
             }}
             className="bg-purple-700 text-white px-4 py-2 rounded-full hover:bg-purple-900 transition-colors cursor-pointer"
           >
