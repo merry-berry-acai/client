@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuPage from "./components/MenuPage";
+import ContactPage from "./components/ContactPage";
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/contact" element={<h1>Contact</h1>} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<h1>Services</h1>} />
           <Route path="/menu" element={<MenuPage />} />
