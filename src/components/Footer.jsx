@@ -1,55 +1,43 @@
+import { Link } from 'react-router-dom';
+import { Container, Grid, Typography, Box } from '@mui/material';
+
 const Footer = () => {
   return (
-    <footer className='bg-violet-900 text-white py-12'>
-      <div className='max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8'>
-        <div>
-          <h4 className='text-xl font-bold mb-4'>Merry Berry</h4>
-          <p className='text-gray-300'>
-            Fresh, healthy, and delicious smoothies & bowls
-          </p>
-        </div>
-        <div>
-          <h4 className='text-xl font-bold mb-4'>Quick Links</h4>
-          <ul className='space-y-2 text-gray-300'>
-            <li>
-              <a href='/menu' className='hover:text-white'>
-                Menu
-              </a>
-            </li>
-            <li>
-              <a href='/about' className='hover:text-white'>
-                About
-              </a>
-            </li>
-            <li>
-              <a href='/contact' className='hover:text-white'>
-                Contact
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4 className='text-xl font-bold mb-4'>Legal</h4>
-          <ul className='space-y-2 text-gray-300'>
-            <li>
-              <a href='/privacy' className='hover:text-white'>
-                Privacy
-              </a>
-            </li>
-            <li>
-              <a href='/terms' className='hover:text-white'>
-                Terms
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4 className='text-xl font-bold mb-4'>Connect</h4>
-          <div className='flex space-x-4'>{/* Social media icons */}</div>
-        </div>
-      </div>
-    </footer>
+    <Box sx={{ bgcolor: '#4a148c', color: '#fff', py: 6 }}>
+      <Container>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={3}>
+            <Typography variant="h6" gutterBottom>Merry Berry</Typography>
+            <Typography variant="body2">
+              Fresh, healthy, and delicious smoothies & bowls
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="h6" gutterBottom>Quick Links</Typography>
+            <Typography variant="body2">
+              <Link to="/menu" style={{ color: '#fff' }}>Menu</Link><br />
+              <Link to="/about" style={{ color: '#fff' }}>About</Link><br />
+              <Link to="/contact" style={{ color: '#fff' }}>Contact</Link><br />
+              <Link to="/admin" style={{ color: '#fff' }}>Admin Panel</Link>
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="h6" gutterBottom>Legal</Typography>
+            <Typography variant="body2">
+              <Link to="/privacy" style={{ color: '#fff' }}>Privacy</Link><br />
+              <Link to="/terms" style={{ color: '#fff' }}>Terms</Link>
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="h6" gutterBottom>Connect</Typography>
+            <Typography variant="body2">
+              {/* Social media icons */}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   )
 }
 
-export default Footer
+export default Footer;

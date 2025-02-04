@@ -1,26 +1,52 @@
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
+import ProfileDropdown from './ProfileDropdown';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { CartContext } from '../contexts/CartContext'; // added import
+import CartDropdown from './CartDropdown'; // added import
+const logo = new URL('../assets/logo.jpg', import.meta.url).href; // added import
+
 const Header = () => {
+  const { isAuthenticated } = useContext(AuthContext);
+  const { cartItems } = useContext(CartContext); // consume cart items
+  const profileInitial = "A"; // Replace with actual user data if available
 
-    return (
+  return (
+    <AppBar position="sticky" sx={{ bgcolor: 'purple' }}>
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+          <Box
+            component="img"
+            src={logo}
+            alt="Merry Berry Logo"
+            sx={{
+              height: 48,
+              width: 48,
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
+          <Typography variant="h6" sx={{ ml: 2 }}>
+            Merry Berry
+          </Typography>
+        </Link>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <CartDropdown />
+          <Button component={Link} to="/order" variant="contained" color="secondary">
+            Order Now
+          </Button>
+          {!isAuthenticated ? (
+            <Button component={Link} to="/login" variant="outlined" color="inherit">
+              Login
+            </Button>
+          ) : (
+            <ProfileDropdown profileInitial={profileInitial} />
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
+  );
+};
 
-<nav className="bg-purple-400 shadow-lg sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <img 
-              src="/logo.png" 
-              alt="Merry Berry Logo" 
-              className="h-12 w-12"
-            />
-            <span className="text-2xl font-bold text-gray-800">Merry Berry</span>
-          </div>
-          <div className="flex space-x-4">
-            <button className="bg-purple-600 text-white px-6 py-2 rounded-full 
-              hover:bg-purple-700 transition-colors shadow-md">
-              Order Now
-            </button>
-          </div>
-        </div>
-      </nav>
-    )
-}
-
-export default Header
+export default Header;

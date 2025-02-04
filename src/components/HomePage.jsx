@@ -1,11 +1,15 @@
 import { FaHeart, FaClock, FaLeaf } from "react-icons/fa";
 import { useState } from "react";
 import FeaturedItem from "./FeaturedItems";
+import { Link } from "react-router-dom";
+import { Container, Box, Typography, Button, Grid } from "@mui/material";
+
 const acaiBowl = new URL("../assets/acai-bowl.png", import.meta.url).href;
 const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
 const smoothie2 = new URL("../assets/smoothie2.png", import.meta.url).href;
+const logo = new URL("../assets/logo.jpg", import.meta.url).href;
+
 const HomePage = () => {
-  const [cartItems, setCartItems] = useState([]);
 
   // Temporary data - replace with API calls
   const featuredItems = [
@@ -36,54 +40,72 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <section className="bg-gradient-to-b from-purple-500 to-violet-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-5xl font-bold mb-6">Craft Your Perfect Bowl</h1>
-          <p className="text-xl mb-8">
+    <Box>
+      <Box sx={{
+        background: 'linear-gradient(to bottom, #8e24aa, #4a148c)',
+        color: '#fff',
+        py: 8,
+        textAlign: 'center'
+      }}>
+        <Container>
+            <Box
+              component="img"
+              src={logo}
+              alt="Merry Berry Logo"
+              sx={{
+                display: "block",
+                margin: "0 auto",
+                borderRadius: "50%",
+                mb: 2
+              }}
+            />
+          <Typography variant="h2" gutterBottom>
+            Craft Your Perfect Bowl
+          </Typography>
+          <Typography variant="h5" gutterBottom>
             Fresh ingredients, endless combinations
-          </p>
-          <div className="flex justify-center">
-            <button className="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-gray-100 transition-colors shadow-md">
-              Start Your Order
-            </button>
-          </div>
-        </div>
-      </section>
+          </Typography>
+          <Button component={Link} to="/order" variant="contained" sx={{ mt: 2 }}>
+            Start Your Order
+          </Button>
+        </Container>
+      </Box>
 
-      {/* Featured Items */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">
+      <Container sx={{ py: 8 }}>
+        <Typography variant="h4" gutterBottom>
           Most Popular Creations
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        </Typography>
+        <Grid container spacing={4}>
           {featuredItems.map((item) => (
-            <FeaturedItem key={item.id} item={item} />
+            <Grid item key={item.id} xs={12} md={6} lg={4}>
+              <FeaturedItem item={item} />
+            </Grid>
           ))}
-        </div>
-      </section>
+        </Grid>
+      </Container>
 
-      {/* Benefits Section */}
-      <section className="bg-gray-100 py-16">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6">
-            <FaLeaf className="text-4xl text-purple-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">100% Organic</h3>
-            <p className="text-gray-600">Locally sourced ingredients</p>
-          </div>
-          <div className="text-center p-6">
-            <FaClock className="text-4xl text-purple-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Order Online</h3>
-            <p className="text-gray-600">Skip the Line</p>
-          </div>
-          <div className="text-center p-6">
-            <FaHeart className="text-4xl text-purple-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Customizable</h3>
-            <p className="text-gray-600">Build your perfect combination</p>
-          </div>
-        </div>
-      </section>
-    </div>
+      <Box sx={{ backgroundColor: '#f5f5f5', py: 8 }}>
+        <Container>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4} textAlign="center">
+              <FaLeaf size={32} style={{ color: '#8e24aa' }} />
+              <Typography variant="h6">100% Organic</Typography>
+              <Typography>Locally sourced ingredients</Typography>
+            </Grid>
+            <Grid item xs={12} md={4} textAlign="center">
+              <FaClock size={32} style={{ color: '#8e24aa' }} />
+              <Typography variant="h6">Order Online</Typography>
+              <Typography>Skip the Line</Typography>
+            </Grid>
+            <Grid item xs={12} md={4} textAlign="center">
+              <FaHeart size={32} style={{ color: '#8e24aa' }} />
+              <Typography variant="h6">Customizable</Typography>
+              <Typography>Build your perfect combination</Typography>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 
