@@ -9,7 +9,6 @@ const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
 const smoothie2 = new URL("../assets/smoothie2.png", import.meta.url).href;
 
 const HomePage = () => {
-  const [cartItems, setCartItems] = useState([]);
 
   // Temporary data - replace with API calls
   const featuredItems = [
@@ -61,6 +60,7 @@ const HomePage = () => {
       </Box>
 
       <Container sx={{ py: 8 }}>
+        <CartDropdown />
         <Typography variant="h4" gutterBottom>
           Most Popular Creations
         </Typography>
