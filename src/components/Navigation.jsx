@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { CartContext } from '../contexts/CartContext'; // added import
+import CartDropdown from './CartDropdown'; // added import
 
 const Header = () => {
   const { isAuthenticated } = useContext(AuthContext);
+  const { cartItems } = useContext(CartContext); // consume cart items
   const profileInitial = "A"; // Replace with actual user data if available
 
   return (
@@ -18,6 +21,7 @@ const Header = () => {
           </Typography>
         </Link>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          <CartDropdown />
           <Button component={Link} to="/order" variant="contained" color="secondary">
             Order Now
           </Button>
