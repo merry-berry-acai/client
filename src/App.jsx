@@ -11,11 +11,14 @@ import ContactPage from "./components/ContactPage";
 import AdminDashboard from "./components/AdminDashboard";
 import SignInPage from "./components/SignInPage";
 import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
+import Cart from "./components/CartPage"; // added import
 
 function App() {
   return (
     <div className="App">
       <AuthProvider>
+        <CartProvider>
       <Router>
         <Header />
         <Routes>
@@ -26,11 +29,13 @@ function App() {
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/login" element={<SignInPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/cart" element={<Cart />} /> {/* added route */}
           <Route path="*" element="404 Not Found" />
         </Routes>
         <Footer />
         <ToastContainer />
       </Router>
+      </CartProvider>
       </AuthProvider>
     </div>
   );
