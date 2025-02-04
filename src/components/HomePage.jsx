@@ -60,7 +60,6 @@ const HomePage = () => {
       </Box>
 
       <Container sx={{ py: 8 }}>
-        <CartDropdown />
         <Typography variant="h4" gutterBottom>
           Most Popular Creations
         </Typography>
