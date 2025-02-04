@@ -28,6 +28,11 @@ const Footer = () => {
                 Contact
               </Link>
             </li>
+            <li>
+              <Link to='/admin' className='hover:text-white'>
+                Admin Panel
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
