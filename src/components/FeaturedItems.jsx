@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { toast } from 'react-toastify';
-import { Card, CardMedia, CardContent, CardActions, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Card, CardMedia, CardContent, CardActions, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Grid, Box } from '@mui/material';
+import { CartContext } from '../contexts/CartContext';
 
 function FeaturedItem({ item }) {
   const [showModal, setShowModal] = useState(false);
   const [customOption, setCustomOption] = useState("");
+  const { addToCart } = useContext(CartContext);
 
-  const addToCart = () => {
+  const handleAddToCart = () => {
+    addToCart(item, customOption);
     toast.success(`${item.name} added to cart with customization: ${customOption || "None"}`);
     setShowModal(false);
     // ...additional add-to-cart logic...
@@ -28,24 +31,52 @@ function FeaturedItem({ item }) {
         </Button>
       </CardActions>
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
-        <DialogTitle>Customize {item.name}</DialogTitle>
+      <DialogTitle>
+          <Typography variant="h5" component="div" sx={{ textAlign: 'center', color: '#0097b2' }}>
+            Customise {item.name}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth>
-            <InputLabel>Customization Option</InputLabel>
-            <Select
-              value={customOption}
-              label="Customization Option"
-              onChange={(e) => setCustomOption(e.target.value)}
-            >
-              <MenuItem value="">None</MenuItem>
-              <MenuItem value="Option 1">Option 1</MenuItem>
-              <MenuItem value="Option 2">Option 2</MenuItem>
-            </Select>
-          </FormControl>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Box
+                sx={{
+                  bgcolor: '#00b5d9',
+                  p: 2,
+                  borderRadius: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <img src={item.image} alt="Acai 1" style={{ width: '100%', maxWidth: '300px', marginBottom: '16px' }} />
+                <Typography variant="h6" component="div" sx={{ color: '#ffffff', marginBottom: '8px' }}>
+                  Acai 1
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#ffffff' }}>
+                  From $Price
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box
+                sx={{
+                  bgcolor: '#e0e0e0',
+                  p: 2,
+                  borderRadius: 2,
+                }}
+              >
+                {/* Placeholder for customization options */}
+                <img src={item.image} alt="Customization" style={{ width: '100%', maxWidth: '300px' }} />
+                {/* Add your customization logic here (e.g., buttons to add/remove toppings) */}
+              </Box>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowModal(false)} color="secondary">Cancel</Button>
-          <Button onClick={addToCart} variant="contained" color="primary">Confirm</Button>
+          <Button onClick={handleAddToCart} sx={{ color: '#ffffff', backgroundColor: '#0097b2', '&:hover': { backgroundColor: '#0097b2' } }}>
+            Add to Cart
+          </Button>
         </DialogActions>
       </Dialog>
     </Card>
