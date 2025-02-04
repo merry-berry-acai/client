@@ -19,7 +19,7 @@ The frontend client for Merry Berry's online ordering system. Built with React t
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/merry-berry/client.git
+git clone https://github.com/merry-berry-acai/client.git
 cd client
 ```
 
@@ -79,8 +79,8 @@ npm test
 ## Deployment
 
 Deployed using Cloudflare:  
-[Live Demo](https://merry-berry.pages.dev)
+[Live Demo](https://merry-berry.finneh.xyz)
 
 ---
 
-[Server Repository](https://github.com/merry-berry/server) | [Project Documentation](/docs)
+[Server Repository](https://github.com/merry-berry-acai/server) | [Project Documentation](https://github.com/merry-berry-acai/T3A2-Part-A)
