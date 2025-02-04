@@ -41,7 +41,7 @@ function FeaturedItem({ item }) {
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  bgcolor: '#00b5d9',
+                  bgcolor: 'purple',
                   p: 2,
                   borderRadius: 2,
                   display: 'flex',
@@ -49,12 +49,12 @@ function FeaturedItem({ item }) {
                   alignItems: 'center',
                 }}
               >
-                <img src={item.image} alt="Acai 1" style={{ width: '100%', maxWidth: '300px', marginBottom: '16px' }} />
+                <img src={item.image} alt={item.name} style={{ width: '100%', maxWidth: '300px', marginBottom: '16px' }} />
                 <Typography variant="h6" component="div" sx={{ color: '#ffffff', marginBottom: '8px' }}>
-                  Acai 1
+                  {item.name}
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#ffffff' }}>
-                  From $Price
+                  From ${item.price}
                 </Typography>
               </Box>
             </Grid>
@@ -67,7 +67,7 @@ function FeaturedItem({ item }) {
                 }}
               >
                 {/* Placeholder for customization options */}
-                <img src={item.image} alt="Customization" style={{ width: '100%', maxWidth: '300px' }} />
+                Customisation Options
                 {/* Add your customization logic here (e.g., buttons to add/remove toppings) */}
               </Box>
             </Grid>

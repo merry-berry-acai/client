@@ -3,8 +3,27 @@ import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext'; // adjust the path as needed
 import { DashboardLayout } from '@toolpad/core'; // corrected import
 import { Container, Box, Typography } from '@mui/material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { PageContainer } from '@toolpad/core/PageContainer';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({children}) => {
+  const navigation = [
+    {
+      kind: 'header',
+      title: 'Main items',
+    },
+    {
+      segment: 'admin',
+      title: 'Dashboard',
+      icon: <DashboardIcon />,
+    },
+    {
+      segment: 'admin/orders',
+      title: 'Orders',
+      icon: <ShoppingCartIcon />,
+    },
+  ];
   const { isAuthenticated, userRole } = useContext(AuthContext);
 
   if (!isAuthenticated || userRole !== "admin") {
@@ -18,13 +37,10 @@ const AdminDashboard = () => {
   );
 
   return (
-    <DashboardLayout header={<CustomHeader />}>
+    <DashboardLayout navigation={navigation}>
+      
       <Container sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Admin Dashboard
-        </Typography>
-        <div className="min-h-screen bg-gray-100 p-8">
-        </div>
+      <PageContainer>{children}</PageContainer>
       </Container>
     </DashboardLayout>
   );

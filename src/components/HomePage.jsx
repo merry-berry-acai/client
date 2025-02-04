@@ -7,6 +7,7 @@ import { Container, Box, Typography, Button, Grid } from "@mui/material";
 const acaiBowl = new URL("../assets/acai-bowl.png", import.meta.url).href;
 const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
 const smoothie2 = new URL("../assets/smoothie2.png", import.meta.url).href;
+const logo = new URL("../assets/logo.jpg", import.meta.url).href;
 
 const HomePage = () => {
 
@@ -47,6 +48,17 @@ const HomePage = () => {
         textAlign: 'center'
       }}>
         <Container>
+            <Box
+              component="img"
+              src={logo}
+              alt="Merry Berry Logo"
+              sx={{
+                display: "block",
+                margin: "0 auto",
+                borderRadius: "50%",
+                mb: 2
+              }}
+            />
           <Typography variant="h2" gutterBottom>
             Craft Your Perfect Bowl
           </Typography>

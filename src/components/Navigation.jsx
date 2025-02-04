@@ -5,6 +5,7 @@ import ProfileDropdown from './ProfileDropdown';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { CartContext } from '../contexts/CartContext'; // added import
 import CartDropdown from './CartDropdown'; // added import
+const logo = new URL('../assets/logo.jpg', import.meta.url).href; // added import
 
 const Header = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -15,7 +16,17 @@ const Header = () => {
     <AppBar position="sticky" sx={{ bgcolor: 'purple' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-          <img src="/logo.png" alt="Merry Berry Logo" style={{ height: 48, width: 48 }} />
+          <Box
+            component="img"
+            src={logo}
+            alt="Merry Berry Logo"
+            sx={{
+              height: 48,
+              width: 48,
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
           <Typography variant="h6" sx={{ ml: 2 }}>
             Merry Berry
           </Typography>
