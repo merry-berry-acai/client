@@ -8,10 +8,14 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuPage from "./components/MenuPage";
 import ContactPage from "./components/ContactPage";
+import AdminDashboard from "./components/AdminDashboard";
+import SignInPage from "./components/SignInPage";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
   return (
     <div className="App">
+      <AuthProvider>
       <Router>
         <Header />
         <Routes>
@@ -20,11 +24,14 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<h1>Services</h1>} />
           <Route path="/menu" element={<MenuPage />} />
+          <Route path="/login" element={<SignInPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element="404 Not Found" />
         </Routes>
         <Footer />
         <ToastContainer />
       </Router>
+      </AuthProvider>
     </div>
   );
 }
