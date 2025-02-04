@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { Card, CardMedia, CardContent, CardActions, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 function FeaturedItem({ item }) {
   const [showModal, setShowModal] = useState(false);
@@ -12,63 +13,42 @@ function FeaturedItem({ item }) {
   };
 
   return (
-    <div className="border rounded shadow-sm overflow-hidden">
-      <img
-        className="w-full h-48 object-cover"
-        src={item.image}
-        alt={item.name}
-      />
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-        <p className="text-gray-600 mb-4">{item.description}</p>
-        <div className="flex justify-between items-center">
-          <div className="relative inline-block">
-            <span className="text-2xl font-semibold text-purple-700">
-              ${item.price.toFixed(2)}
-            </span>
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-purple-700 text-white px-4 py-2 rounded-full hover:bg-purple-900 transition-colors cursor-pointer"
-          >
-            Add to Cart
-          </button>
-        </div>
-      </div>
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Customize {item.name}</h2>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Customization Option</label>
-              <select
-                value={customOption}
-                onChange={(e) => setCustomOption(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">None</option>
-                <option value="Option 1">Option 1</option>
-                <option value="Option 2">Option 2</option>
-              </select>
-            </div>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowModal(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addToCart}
-                className="bg-purple-700 text-white px-4 py-2 rounded"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <Card>
+      <CardMedia component="img" height="180" image={item.image} title={item.name} />
+      <CardContent>
+        <Typography variant="h6">{item.name}</Typography>
+        <Typography variant="body2" color="textSecondary">{item.description}</Typography>
+      </CardContent>
+      <CardActions>
+        <Typography variant="body1" color="primary" sx={{ flexGrow: 1 }}>
+          ${item.price.toFixed(2)}
+        </Typography>
+        <Button onClick={() => setShowModal(true)} variant="contained" color="primary">
+          Add to Cart
+        </Button>
+      </CardActions>
+      <Dialog open={showModal} onClose={() => setShowModal(false)}>
+        <DialogTitle>Customize {item.name}</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth>
+            <InputLabel>Customization Option</InputLabel>
+            <Select
+              value={customOption}
+              label="Customization Option"
+              onChange={(e) => setCustomOption(e.target.value)}
+            >
+              <MenuItem value="">None</MenuItem>
+              <MenuItem value="Option 1">Option 1</MenuItem>
+              <MenuItem value="Option 2">Option 2</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowModal(false)} color="secondary">Cancel</Button>
+          <Button onClick={addToCart} variant="contained" color="primary">Confirm</Button>
+        </DialogActions>
+      </Dialog>
+    </Card>
   );
 }
 

@@ -1,49 +1,36 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { IconButton, Menu, MenuItem, Avatar } from '@mui/material';
 
 const ProfileDropdown = ({ profileInitial }) => {
-  const [open, setOpen] = useState(false);
   const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const dropdownRef = useRef(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = () => {
     logout();
     navigate('/');
+    handleClose();
   };
-
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   return (
-    <div className="relative profile-dropdown" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        {profileInitial}
-      </button>
-      {open && (
-        <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
-          <li className="px-4 py-2 hover:bg-gray-100">
-            <Link to="/profile">Profile</Link>
-          </li>
-          <li className="px-4 py-2 hover:bg-gray-100">
-            <button onClick={handleLogout}>Logout</button>
-          </li>
-        </ul>
-      )}
+    <div>
+      <IconButton onClick={handleOpen} color="primary">
+        <Avatar>{profileInitial}</Avatar>
+      </IconButton>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+        <MenuItem onClick={handleClose} component={Link} to="/profile">Profile</MenuItem>
+        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      </Menu>
     </div>
   );
 };

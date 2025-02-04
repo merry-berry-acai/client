@@ -1,4 +1,6 @@
+
 import React from 'react';
+import { Container, Box, Typography, Card, CardMedia, CardContent } from '@mui/material';
 
 const acaiBowl = new URL("../assets/acai-bowl.png", import.meta.url).href;
 const smoothie = new URL("../assets/smoothie.png", import.meta.url).href;
@@ -30,22 +32,28 @@ const MenuPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">Menu</h1>
-        <ul>
+    <Container className="min-h-screen bg-gray-50 p-8">
+      <Box className="max-w-4xl mx-auto">
+        <Typography variant="h1" className="text-4xl font-bold mb-4">Menu</Typography>
+        <Box component="ul">
           {menuItems.map(item => (
-            <li key={item.id} className="mb-6 border p-4 rounded shadow-sm">
-              {/* Display the menu item image */}
-              <img src={item.image} alt={item.name} className="w-full h-64 object-cover mb-4 rounded" />
-              <h2 className="text-2xl font-semibold">{item.name}</h2>
-              <p className="text-md text-gray-700">{item.description}</p>
-              <span className="text-lg text-purple-700">{item.price}</span>
-            </li>
+            <Card key={item.id} className="mb-6 border p-4 rounded shadow-sm">
+              <CardMedia
+                component="img"
+                image={item.image}
+                alt={item.name}
+                className="w-full h-64 object-cover mb-4 rounded"
+              />
+              <CardContent>
+                <Typography variant="h2" className="text-2xl font-semibold">{item.name}</Typography>
+                <Typography variant="body1" className="text-md text-gray-700">{item.description}</Typography>
+                <Typography variant="body2" className="text-lg text-purple-700">{item.price}</Typography>
+              </CardContent>
+            </Card>
           ))}
-        </ul>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
