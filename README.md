@@ -190,10 +190,69 @@ The website is optimized for a seamless shopping experience across mobile, table
 
 ---
 
-### Summary of Adjustments:
-✔ Expanded each feature into clear, structured sections.  
-✔ Emphasized how the shopping cart is handled on the frontend instead of the backend.  
-✔ Kept the explanation detailed yet concise to reflect real-world implementation.
+## 🎯 **Target Audience**  
+
+The **Merry Berry Smoothie & Açaí Shop** platform is tailored to meet the needs of a diverse customer base that values health, convenience, and digital accessibility. Below is a detailed breakdown of the target audience:  
+
+---
+
+### **👥  Health-Conscious Consumers 🥑**  
+ 
+- Individuals committed to maintaining a healthy diet.  
+- People focused on balanced nutrition and natural ingredients.  
+- Those following dietary plans such as **vegan, keto, high-protein, or gluten-free**.  
+
+🎯 **Why They Need Merry Berry:**  
+- Access to **fresh, organic, and nutrient-rich** smoothies and bowls.  
+- Ability to customize orders based on dietary needs.  
+- Transparency in ingredients and nutritional benefits.  
+
+---
+
+### **👥  Fitness Enthusiasts & Athletes 🏋️‍♂️**  
+
+- Gym-goers, runners, and sports professionals.  
+- Those seeking **high-protein, low-sugar, or energy-boosting** meal options.  
+
+🎯 **Why They Need Merry Berry:**  
+- **Post-workout recovery** smoothies with protein add-ons.  
+- Easily accessible **nutrient-dense snacks** to fuel workouts.  
+- Ability to track past orders and reorder their favorite blends.  
+
+---
+
+### **👥 Busy Professionals & Students 📚**  
+ 
+- Office workers, entrepreneurs, and students with **hectic schedules**.  
+- People who prefer fast, **on-the-go** meals.  
+
+🎯 **Why They Need Merry Berry:**  
+- Quick ordering and **pickup-ready** meals.  
+- Mobile-friendly platform for **ordering during work/study breaks**.  
+- Secure payment processing for fast transactions.  
+
+---
+
+### **👥 Tech-Savvy Digital Shoppers 📱**  
+- Consumers who prefer **online ordering over in-store purchases**.  
+- Millennials and Gen Z users who engage with brands digitally.  
+
+🎯 **Why They Need Merry Berry:**  
+- **User-friendly interface** with smooth browsing and checkout.  
+- **Real-time order tracking** and notifications.  
+- Multiple payment options, including **Apple Pay & Google Pay**.  
+
+---
+
+### **👥 Local Community & Regular Customers 🏡**  
+
+- Customers who frequently visit smoothie and açaí bowl shops.  
+- Those who want a **personalized loyalty experience**.  
+
+🎯 **Why They Need Merry Berry:**  
+- **Order history & quick reorder** for favorite items.  
+- Access to **promo codes and discounts**.  
+- **In-store pickup & delivery tracking** for added convenience.  
 
 
 ## Installation
