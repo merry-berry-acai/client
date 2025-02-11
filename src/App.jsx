@@ -13,6 +13,7 @@ import SignInPage from "./components/SignInPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Cart from "./components/CartPage"; // added import
+import PageNotFound from "./components/404Page";
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
           <Route path="/login" element={<SignInPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/cart" element={<Cart />} /> {/* added route */}
-          <Route path="*" element="404 Not Found" />
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Footer />
         <ToastContainer />

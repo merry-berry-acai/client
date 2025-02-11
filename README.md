@@ -83,4 +83,4 @@ Deployed using Cloudflare:
 
 ---
 
-[Server Repository](https://github.com/merry-berry-acai/server) | [Project Documentation](https://github.com/merry-berry-acai/T3A2-Part-A)
+[Server Repository](https://github.com/merry-berry-acai/server) | [Project Documentation](https://github.com/merry-berry-acai/docs)
