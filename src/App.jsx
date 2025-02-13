@@ -1,19 +1,17 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./components/HomePage";
-import AboutPage from "./components/AboutPage";
-import Header from "./components/Navigation";
-import Footer from "./components/Footer";
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import MenuPage from "./components/MenuPage";
-import ContactPage from "./components/ContactPage";
-import AdminDashboard from "./components/AdminDashboard";
+import MenuPage from "./pages/MenuPage";
+import ContactPage from "./pages/ContactPage";
 import SignInPage from "./components/SignInPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
-import Cart from "./components/CartPage"; // added import
-import PageNotFound from "./components/404Page";
+import Cart from "./pages/CartPage"; // added import
+import PageNotFound from "./pages/404Page";
+import CategoryList from "./components/menu-browsing/CategoryList";
 
 function App() {
   return (
@@ -21,7 +19,6 @@ function App() {
       <AuthProvider>
         <CartProvider>
       <Router>
-        <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -29,11 +26,10 @@ function App() {
           <Route path="/services" element={<h1>Services</h1>} />
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/login" element={<SignInPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/cart" element={<Cart />} /> {/* added route */}
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/categories/" element={<CategoryList />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
-        <Footer />
         <ToastContainer />
       </Router>
       </CartProvider>
