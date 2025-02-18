@@ -41,7 +41,7 @@ const CustomisationModal = ({ open, onClose, onAdd, item }) => {
                 alignItems: 'center',
               }}
             >
-              <img src={item.image} alt={item.name} style={{ width: '100%', maxWidth: '300px', marginBottom: '16px' }} />
+              <img src={item.image} alt={item.name} className={'item-image'} />
               <Typography variant="h6" component="div" sx={{ color: '#ffffff', marginBottom: '8px' }}>
                 {item.name}
               </Typography>
@@ -58,10 +58,14 @@ const CustomisationModal = ({ open, onClose, onAdd, item }) => {
                 borderRadius: 2,
               }}
             >
-              {/* Render available toppings */}
+              <Typography variant="body2" sx={{ mb: 2, color: '#555' }}>
+                {item.details}
+              </Typography>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Select Toppings:
               </Typography>
+              {/* New details section */}
+              
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {TOPPINGS.map(topping => {
                   const isSelected = selectedToppings.some(t => t.id === topping.id);
