@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { Menu, MenuItem, Button, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { CartContext } from '../contexts/CartContext';
+import { CartContext } from '../../contexts/CartContext';
+import CartItem from './CartItem';
 
 const CartDropdown = () => {
   const { cartItems } = useContext(CartContext);
@@ -23,17 +24,11 @@ const CartDropdown = () => {
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         {cartItems.length === 0 ? (
           <MenuItem disabled>
-            <Typography variant="body2">
-              Your cart is empty.
-            </Typography>
+            <Typography variant="body2">Your cart is empty.</Typography>
           </MenuItem>
         ) : (
           cartItems.map((item, index) => (
-            <MenuItem key={index}>
-              <Typography variant="body2">
-                {item.name} {item.customization && `- ${item.customization}`}
-              </Typography>
-            </MenuItem>
+            <CartItem key={index} item={item} variant="dropdown" />
           ))
         )}
         <MenuItem onClick={viewFullCart}>

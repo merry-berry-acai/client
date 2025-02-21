@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { CartContext } from '../contexts/CartContext'; // added import
-import CartDropdown from './CartDropdown'; // added import
-const logo = new URL('../assets/logo.jpg', import.meta.url).href; // added import
+import { CartContext } from '../contexts/CartContext';
+import CartDropdown from './cart/CartDropdown';
+const logo = new URL('../assets/logo.jpg', import.meta.url).href;
 
 const Header = () => {
   const { isAuthenticated } = useContext(AuthContext);
-  const { cartItems } = useContext(CartContext); // consume cart items
   const profileInitial = "A"; // Replace with actual user data if available
 
   return (
