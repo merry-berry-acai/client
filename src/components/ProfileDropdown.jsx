@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { IconButton, Menu, MenuItem, Avatar } from '@mui/material';
+import { signOutUser } from '../utils/firebase';
 
 const ProfileDropdown = ({ profileInitial }) => {
   const { logout } = useContext(AuthContext);
@@ -17,7 +18,7 @@ const ProfileDropdown = ({ profileInitial }) => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOutUser();
     navigate('/');
     handleClose();
   };
