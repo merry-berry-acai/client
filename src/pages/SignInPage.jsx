@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import { Container, Paper, Typography, TextField, Button, Box } from "@mui/material";
 import { handleGoogleSignIn, signIn } from "../utils/firebase";
@@ -54,6 +54,10 @@ const SignInPage = () => {
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
             Sign In
           </Button>
+          {/* New link to Sign Up */}
+          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+            Don&apos;t have an account? <Link to="/auth/register">Sign Up</Link>
+          </Typography>
         </Box>
       </Paper>
     </Container>
