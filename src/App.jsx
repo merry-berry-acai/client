@@ -12,6 +12,7 @@ import { CartProvider } from "./contexts/CartContext";
 import Cart from "./pages/CartPage"; // added import
 import PageNotFound from "./pages/404Page";
 import CategoryList from "./components/menu-browsing/CategoryList";
+import SignUpPage from "./pages/SignUpPage";
 
 function App() {
   return (
@@ -25,7 +26,8 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<h1>Services</h1>} />
           <Route path="/menu" element={<MenuPage />} />
-          <Route path="/login" element={<SignInPage />} />
+          <Route path="/auth/login" element={<SignInPage />} />
+          <Route path="/auth/register" element={<SignUpPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/categories/" element={<CategoryList />} />
           <Route path="*" element={<PageNotFound />} />
