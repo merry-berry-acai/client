@@ -6,7 +6,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MenuPage from "./pages/MenuPage";
 import ContactPage from "./pages/ContactPage";
-import SignInPage from "./components/SignInPage";
+import SignInPage from "./pages/SignInPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Cart from "./pages/CartPage"; // added import
