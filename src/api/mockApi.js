@@ -103,6 +103,27 @@ export const MENU_ITEMS = [
 // Add FEATURED_ITEMS export
 export const FEATURED_ITEMS = MENU_ITEMS.filter(item => [1, 2, 3].includes(item.id));
 
+// Add a new constant for mock previous orders keyed by user uid
+const PREVIOUS_ORDERS = {
+  "EszW3BDsb4P6qLp9gJ03IRkCTKn2": [
+    {
+      id: 1,
+      title: "Classic Açaí Bowl Order",
+      company: "Smoothie Express",
+      period: "2023-01-15",
+      description: "Order delivered successfully.",
+    },
+    {
+      id: 2,
+      title: "Tropical Smoothie Order",
+      company: "Smoothie Express",
+      period: "2023-02-03",
+      description: "Order delivered successfully.",
+    },
+  ],
+  // ...add more uid orders as needed...
+};
+
 export function getCategories() {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -135,6 +156,16 @@ export function getFeaturedItems() {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(FEATURED_ITEMS);
+    }, 500);
+  });
+}
+
+// New function to get orders by user uid
+export function getOrdersByUserId(uid) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const orders = PREVIOUS_ORDERS[uid] || "No previous orders";
+      resolve(orders);
     }, 500);
   });
 }
