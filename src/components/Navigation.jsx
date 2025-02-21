@@ -36,7 +36,7 @@ const Header = () => {
             Order Now
           </Button>
           {!isAuthenticated ? (
-            <Button component={Link} to="/login" variant="outlined" color="inherit">
+            <Button component={Link} to="/auth/login" variant="outlined" color="inherit">
               Login
             </Button>
           ) : (
