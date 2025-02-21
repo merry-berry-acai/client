@@ -13,6 +13,7 @@ import Cart from "./pages/CartPage"; // added import
 import PageNotFound from "./pages/404Page";
 import CategoryList from "./components/menu-browsing/CategoryList";
 import SignUpPage from "./pages/SignUpPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -30,7 +31,9 @@ function App() {
           <Route path="/auth/register" element={<SignUpPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/categories/" element={<CategoryList />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<PageNotFound />} />
+        
         </Routes>
         <ToastContainer />
       </Router>
