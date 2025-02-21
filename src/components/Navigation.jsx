@@ -8,8 +8,7 @@ import CartDropdown from './cart/CartDropdown';
 const logo = new URL('../assets/logo.jpg', import.meta.url).href;
 
 const Header = () => {
-  const { isAuthenticated } = useContext(AuthContext);
-  const profileInitial = "A"; // Replace with actual user data if available
+  const { isAuthenticated } = useContext(AuthContext)
 
   return (
     <AppBar position="sticky" sx={{ bgcolor: 'purple' }}>
@@ -40,7 +39,7 @@ const Header = () => {
               Login
             </Button>
           ) : (
-            <ProfileDropdown profileInitial={profileInitial} />
+            <ProfileDropdown/>
           )}
         </Box>
       </Toolbar>
