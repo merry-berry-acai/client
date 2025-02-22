@@ -7,8 +7,8 @@ const MenuItem = ({ item }) => {
   const [showModal, setShowModal] = useState(false);
   const { addToCart } = useContext(CartContext);
 
-  const handleAddToCart = (selectedToppings) => {
-    addToCart(item, selectedToppings);
+  const handleAddToCart = (selectedToppings, quantity) => {
+    addToCart(item, selectedToppings, quantity);
     setShowModal(false);
   };
 
