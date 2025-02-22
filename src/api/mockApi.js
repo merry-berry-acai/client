@@ -7,11 +7,11 @@ export const CATEGORIES = [
 
 // Updated TOPPINGS export with additional toppings
 export const TOPPINGS = [
-  { id: 1, name: "Granola", price: "$0.99" },
-  { id: 2, name: "Fresh Berries", price: "$1.49" },
-  { id: 3, name: "Coconut Flakes", price: "$0.79" },
+  { id: 1, name: "Granola", price: "$1.00" },
+  { id: 2, name: "Fresh Berries", price: "$1.50" },
+  { id: 3, name: "Coconut Flakes", price: "$0.80" },
   { id: 4, name: "Honey", price: "$0.50" },
-  { id: 5, name: "Chia Seeds", price: "$0.69" },
+  { id: 5, name: "Chia Seeds", price: "$0.70" },
   { id: 6, name: "Cinnamon", price: "$0.40" }
 ];
 
