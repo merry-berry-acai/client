@@ -1,23 +1,52 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Grid, Box, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Grid, Box, Button, IconButton } from '@mui/material';
 import { TOPPINGS } from '../../api/mockApi';
+import ToppingSelector from './ToppingSelector';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
-const CustomisationModal = ({ open, onClose, onAdd, item }) => {
-  // Initialize selected toppings with item's default toppings (or empty if none)
-  const [selectedToppings, setSelectedToppings] = useState(() => item.toppings || []);
+const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => {
+  const [selectedToppings, setSelectedToppings] = useState(() => {
+    const existing = variant === 'edit'
+      ? (Array.isArray(item.customization) ? item.customization : [])
+      : (item.toppings || []);
+    return existing.map(t => ({ ...t, quantity: t.quantity || 1 }));
+  });
+  // New: State for item quantity
+  const [quantity, setQuantity] = useState(item.quantity || 1);
 
-  const toggleTopping = (topping) => {
+  const parsePrice = (price) => parseFloat(price.toString().replace('$', ''));
+  const basePrice = parsePrice(item.price);
+  const toppingsTotal = selectedToppings.reduce((sum, t) => sum + (parsePrice(t.price) * t.quantity), 0);
+  const totalPrice = (basePrice + toppingsTotal) * quantity;
+
+  const incrementTopping = (topping) => {
     setSelectedToppings(prev => {
       const exists = prev.find(t => t.id === topping.id);
       if (exists) {
-        return prev.filter(t => t.id !== topping.id);
+        return prev.map(t => t.id === topping.id ? { ...t, quantity: t.quantity + 1 } : t);
       }
-      return [...prev, topping];
+      return [...prev, { ...topping, quantity: 1 }];
     });
   };
 
+  const decrementTopping = (topping) => {
+    setSelectedToppings(prev => {
+      const exists = prev.find(t => t.id === topping.id);
+      if (exists && exists.quantity > 1) {
+        return prev.map(t => t.id === topping.id ? { ...t, quantity: t.quantity - 1 } : t);
+      }
+      return prev.filter(t => t.id !== topping.id);
+    });
+  };
+
+  // New: Handlers for quantity adjustment
+  const incrementQuantity = () => setQuantity(prev => prev + 1);
+  const decrementQuantity = () => setQuantity(prev => Math.max(prev - 1, 1));
+
+  // Update: Pass updated item with separate "customization" and "quantity"
   const handleAdd = () => {
-    onAdd(selectedToppings);
+    onAdd({ ...item, customization: selectedToppings, quantity });
     onClose();
   };
 
@@ -25,7 +54,7 @@ const CustomisationModal = ({ open, onClose, onAdd, item }) => {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>
         <Typography variant="h5" component="div" sx={{ textAlign: 'center', color: '#0097b2' }}>
-          Customise {item.name}
+          {variant === 'edit' ? `Edit Customisation for ${item.name}` : `Customise ${item.name}`}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -49,6 +78,16 @@ const CustomisationModal = ({ open, onClose, onAdd, item }) => {
                 From {item.price}
               </Typography>
             </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
+                <Typography variant="body1" sx={{ mr: 1 }}>Quantity:</Typography>
+                <IconButton size="small" onClick={decrementQuantity}>
+                  <RemoveCircleOutlineIcon />
+                </IconButton>
+                <Typography variant="body1" sx={{ mx: 1 }}>{quantity}</Typography>
+                <IconButton size="small" onClick={incrementQuantity}>
+                  <AddCircleOutlineIcon />
+                </IconButton>
+            </Box>
           </Grid>
           <Grid item xs={12} md={6}>
             <Box
@@ -64,33 +103,35 @@ const CustomisationModal = ({ open, onClose, onAdd, item }) => {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Select Toppings:
               </Typography>
-              {/* New details section */}
-              
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                 {TOPPINGS.map(topping => {
-                  const isSelected = selectedToppings.some(t => t.id === topping.id);
+                  const selected = selectedToppings.find(t => t.id === topping.id);
                   return (
-                    <Button
-                      key={topping.id}
-                      variant={isSelected ? "contained" : "outlined"}
-                      size="small"
-                      onClick={() => toggleTopping(topping)}
-                    >
-                      {topping.name}
-                    </Button>
+                    <ToppingSelector 
+                      key={topping.id} 
+                      topping={topping} 
+                      selected={selected} 
+                      onIncrement={incrementTopping} 
+                      onDecrement={decrementTopping} 
+                    />
                   );
                 })}
               </Box>
+              {/* New: Item quantity adjustment */}
+             
             </Box>
           </Grid>
         </Grid>
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="h6">Total: ${totalPrice.toFixed(2)}</Typography>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button 
           onClick={handleAdd} 
           sx={{ color: '#ffffff', backgroundColor: '#0097b2', '&:hover': { backgroundColor: '#0097b2' } }}
         >
-          Add to Cart
+          {variant === 'edit' ? 'Update Customization' : 'Add to Cart'}
         </Button>
       </DialogActions>
     </Dialog>
