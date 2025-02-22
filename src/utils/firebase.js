@@ -6,9 +6,11 @@ import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-    signInWithPopup,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -23,7 +25,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const provider = new GoogleAuthProvider()
+const provider = new GoogleAuthProvider();
 
 //Example of using onAuthStateChanged to monitor the authentication state:
 onAuthStateChanged(auth, (user) => {
@@ -40,15 +42,14 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-const handleGoogleSignIn = async () => {
+const handleGoogleSignIn = async (navigate) => {
   try {
     const result = await signInWithPopup(auth, provider);
-    // This gives you a Google AuthResponse.  You'll likely want to use `result.user.uid`
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential.accessToken; //Optional
-    const user = result.user;
-    console.log(user);
-    // Access user information: user.displayName, user.email, user.uid, etc.
+    toast.success("Login Successful!");
+    setTimeout(() => {
+      navigate("/profile"); // using react-router-dom navigate
+    }, 1000);
+    return result;
   } catch (error) {
     console.error("Google Sign-In Error:", error);
     // Handle the error appropriately
@@ -56,11 +57,14 @@ const handleGoogleSignIn = async () => {
 };
 
 // Sign-up
-const signUp = (email, password) => {
+const signUp = (email, password, navigate) => {
   createUserWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      // Signed up successfully.
       const user = userCredential.user;
+      toast.success("Sign Up Successful!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, 1000);
       console.log("User created:", user);
     })
     .catch((error) => {
@@ -72,11 +76,14 @@ const signUp = (email, password) => {
 };
 
 // Sign-in
-const signIn = (email, password) => {
+const signIn = (email, password, navigate) => {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      // Signed in successfully.
       const user = userCredential.user;
+      toast.success("Sign In Successful!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, 1000);
       console.log("User signed in:", user);
     })
     .catch((error) => {
@@ -91,7 +98,7 @@ const signIn = (email, password) => {
 const signOutUser = () => {
   signOut(auth)
     .then(() => {
-      // Sign-out successful.
+      toast.success("Sign Out Successful!");
       console.log("User signed out");
     })
     .catch((error) => {

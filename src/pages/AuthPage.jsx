@@ -2,12 +2,12 @@ import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import { Container, Paper, Typography, TextField, Button, Box } from "@mui/material";
-import { handleGoogleSignIn, signIn } from "../utils/firebase";
+import { handleGoogleSignIn, signIn, signUp } from "../utils/firebase";
 import GoogleButton from "react-google-button";
 import Layout from "../components/Layout";
 
-const SignInPage = () => {
-
+const AuthPage = () => {
+  const variant = location.pathname.includes("login") ? "signin" : "signup";
    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
       const navigate = useNavigate();
@@ -15,8 +15,11 @@ const SignInPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await signIn(email, password);
-            navigate('/')
+          if (variant === "signin") {
+            await signIn(email, password, navigate);
+          } else  {
+            await signUp(email, password, navigate);
+          }
             // Handle successful login
         } catch (error) {
             console.error('Login error:', error);
@@ -30,9 +33,12 @@ const SignInPage = () => {
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" align="center" gutterBottom>
-          Sign In
+        {variant === "signin" ? "Sign In" : "Sign Up"}
         </Typography>
-        <GoogleButton align='center' onClick={handleGoogleSignIn} />
+        {/* Center the Google Button */}
+        <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+          <GoogleButton onClick={() => handleGoogleSignIn(navigate)} />
+        </Box>
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -52,11 +58,15 @@ const SignInPage = () => {
             margin="normal"
           />
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-            Sign In
+          {variant === "signin" ? "Sign In" : "Sign Up"}
           </Button>
           {/* New link to Sign Up */}
           <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-            Don&apos;t have an account? <Link to="/auth/register">Sign Up</Link>
+          {variant === "signin" ? "Don't have an account? " : "Already have an account? "}
+          <Link to={variant === "signin" ? "/auth/register" : "/auth/login"}>
+            {variant === "signin" ? "Sign Up" : "Sign In"}
+          </Link>
+            
           </Typography>
         </Box>
       </Paper>
@@ -65,4 +75,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default AuthPage;
