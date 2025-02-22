@@ -1,32 +1,34 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
+import { auth } from "../utils/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { storeUserPhoto, clearUserPhoto, getUserPhoto } from '../utils/localStorage';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const login = (username, password) => {
-    return new Promise((resolve, reject) => {
-      if (username === "admin" && password === "password") {
+  // Firebase auth integration:
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        storeUserPhoto(user.photoURL);
+        setCurrentUser(user);
         setIsAuthenticated(true);
-        setUserRole("admin");
-        resolve();
       } else {
+        clearUserPhoto();
+        setCurrentUser(null);
         setIsAuthenticated(false);
-        setUserRole("");
-        reject();
       }
     });
-  };
+    return unsubscribe;
+  }, []);
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserRole("");
-  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userRole, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userRole, currentUser }}>
       {children}
     </AuthContext.Provider>
   );

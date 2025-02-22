@@ -1,10 +1,16 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { IconButton, Menu, MenuItem, Avatar } from '@mui/material';
+import { IconButton, Menu, MenuItem, Avatar, Divider } from '@mui/material';
+import { signOutUser } from '../utils/firebase';
+import { getUserPhoto } from '../utils/localStorage';
 
-const ProfileDropdown = ({ profileInitial }) => {
-  const { logout } = useContext(AuthContext);
+const ProfileDropdown = () => {
+  const { currentUser } = useContext(AuthContext);
+
+  const profileInitial = currentUser.displayName ? currentUser.displayName.charAt(0) : 'U';
+  const photoData = getUserPhoto();
+  const photoSrc = photoData || currentUser.photoURL || null;
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -17,7 +23,7 @@ const ProfileDropdown = ({ profileInitial }) => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOutUser();
     navigate('/');
     handleClose();
   };
@@ -25,9 +31,12 @@ const ProfileDropdown = ({ profileInitial }) => {
   return (
     <div>
       <IconButton onClick={handleOpen} color="primary">
-        <Avatar>{profileInitial}</Avatar>
+        <Avatar alt={currentUser.displayName} src={photoSrc}>{profileInitial}</Avatar>
       </IconButton>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+        <MenuItem>{currentUser.displayName}</MenuItem>
+        <Divider />
+        
         <MenuItem onClick={handleClose} component={Link} to="/profile">Profile</MenuItem>
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>
