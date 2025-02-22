@@ -18,7 +18,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
-  // Placeholder favorites; in a real system this might be fetched from an API
   const [favorites] = useState(["Classic Açaí Bowl", "Tropical Smoothie"]);
 
   useEffect(() => {
@@ -30,11 +29,12 @@ const Profile = () => {
   }, [currentUser]);
 
   const photoData = getUserPhoto();
-    const photoSrc = photoData || currentUser.photoURL || null;
+  const defaultPhoto = "/assets/default-user.png"; // ensure this image exists in your assets folder
+  const photoSrc = photoData || currentUser.photoURL || defaultPhoto;
+  const profileInitial = currentUser.displayName ? currentUser.displayName.charAt(0) : 'U';
 
   if (!currentUser) {
     return (
-      // Fallback UI when user data is missing
       <div style={{ padding: "2rem", textAlign: "center" }}>
         <h2>User not found.</h2>
         <p>Please log in to view your profile.</p>
@@ -47,13 +47,14 @@ const Profile = () => {
       <div className="min-h-screen" style={{ backgroundColor: "#f9fafb" }}>
         <Container sx={{ py: 4 }}>
           <Box sx={{ maxWidth: 800, mx: "auto" }}>
-            {/* Profile Header */}
             <Card sx={{ mb: 4 }}>
               <CardContent>
                 <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                   <Box sx={{ position: "relative" }}>
                     <Box sx={{ width: 96, height: 96, borderRadius: "50%", backgroundColor: "rgba(25, 118, 210, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Avatar sx={{ width: 64, height: 64 }} alt={currentUser.displayName} src={photoSrc}></Avatar>
+                      <Avatar sx={{ width: 64, height: 64 }} alt={currentUser.displayName} src={photoSrc}>
+                        {profileInitial}
+                      </Avatar>
                     </Box>
                   </Box>
                   <Box sx={{ flexGrow: 1 }}>
@@ -63,16 +64,13 @@ const Profile = () => {
                     <Typography variant="body2" color="textSecondary">
                       {currentUser.email}
                     </Typography>
-                    {/* Removed non-restaurant details */}
                   </Box>
                 </Box>
               </CardContent>
             </Card>
 
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" }, gap: 4 }}>
-              {/* Main Information */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {/* Previous Orders */}
                 <Card>
                   <CardHeader title="Order History" />
                   <CardContent>
@@ -95,7 +93,6 @@ const Profile = () => {
                   </CardContent>
                 </Card>
 
-                {/* Favorites (formerly Skills) */}
                 <Card>
                   <CardHeader title="Favorite Dishes" />
                   <CardContent>
@@ -112,9 +109,7 @@ const Profile = () => {
                 </Card>
               </Box>
 
-              {/* Sidebar */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {/* Delivery Details */}
                 <Card>
                   <CardHeader title="Delivery Details" />
                   <CardContent>
@@ -124,18 +119,15 @@ const Profile = () => {
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                       <Phone style={{ width: 16, height: 16 }} />
-                      {/* Replace with currentUser.phoneNumber if available */}
                       <Typography variant="body2">+1 (555) 123-4567</Typography>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Globe style={{ width: 16, height: 16 }} />
-                      {/* Replace with currentUser.address if available */}
                       <Typography variant="body2">123 Main St, City</Typography>
                     </Box>
                   </CardContent>
                 </Card>
 
-                {/* Support */}
                 <Card>
                   <CardHeader title="Support" />
                   <CardContent>
