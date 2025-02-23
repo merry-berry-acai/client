@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography } from '@mui/material';
-import { getMenuItems, CATEGORIES } from '../api/mockApi';
+import { getMenuItems } from '../api/apiHandler';
+import { CATEGORIES } from '../api/mockApi';
 import CategoryList from '../components/menu-browsing/CategoryList';
 import Layout from '../components/Layout';
 import MenuItem from '../components/menu-browsing/MenuItem';

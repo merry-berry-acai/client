@@ -13,14 +13,14 @@ const Cart = () => {
   const parsePrice = (price) => parseFloat(price.toString().replace('$', ''));
   
   const calculateItemTotal = (item) => {
-    const basePrice = parsePrice(item.price);
+    
     let toppingTotal = 0;
     if (Array.isArray(item.customization)) {
       toppingTotal = item.customization.reduce((sum, t) => sum + (t.price ? parsePrice(t.price) * (t.quantity || 1) : 0), 0);
     } else if (item.customization && item.customization.price) {
       toppingTotal = parsePrice(item.customization.price);
     }
-    const baseTotal = basePrice + toppingTotal;
+    const baseTotal = item.basePrice + toppingTotal;
     const quantity = item.quantity || 1;
     return baseTotal * quantity;
   };

@@ -17,7 +17,6 @@ const CartItem = ({ item, variant }) => {
   const parsePrice = (priceStr) => parseFloat(priceStr.replace('$', ''));
 
   // Calculate base price and topping total
-  const basePrice = parsePrice(item.price);
   let toppingTotal = 0;
   if (Array.isArray(item.customization)) {
     toppingTotal = item.customization.reduce((sum, t) => sum + (t.price ? parsePrice(t.price) : 0), 0);
@@ -25,7 +24,7 @@ const CartItem = ({ item, variant }) => {
     toppingTotal = parsePrice(item.customization.price);
   }
 
-  const baseTotal = basePrice + toppingTotal;
+  const baseTotal = item.basePrice + toppingTotal;
   const quantity = item.quantity || 1;
   const totalPrice = baseTotal * quantity;
 
@@ -101,7 +100,7 @@ const CartItem = ({ item, variant }) => {
           </Typography>
           {/* New Price Breakdown */}
           <Box sx={{ mt: 1 }}>
-            <Typography variant="body2">Base Price: ${basePrice.toFixed(2)}</Typography>
+            <Typography variant="body2">Base Price: ${item.basePrice.toFixed(2)}</Typography>
             {Array.isArray(item.customization) && item.customization.length > 0 && (
               <>
                 {item.customization.map(t => (

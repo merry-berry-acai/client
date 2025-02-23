@@ -16,9 +16,8 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
   const [quantity, setQuantity] = useState(item.quantity || 1);
 
   const parsePrice = (price) => parseFloat(price.toString().replace('$', ''));
-  const basePrice = parsePrice(item.price);
   const toppingsTotal = selectedToppings.reduce((sum, t) => sum + (parsePrice(t.price) * t.quantity), 0);
-  const totalPrice = (basePrice + toppingsTotal) * quantity;
+  const totalPrice = (item.basePrice + toppingsTotal) * quantity;
 
   const incrementTopping = (topping) => {
     setSelectedToppings(prev => {

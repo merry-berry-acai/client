@@ -28,7 +28,7 @@ const MenuItem = ({ item }) => {
           {item.description}
         </Typography>
         <Typography variant="h3" sx={{ color: 'secondary.main', fontWeight: 'bold', mb: 2 }}>
-          {item.price}
+          ${item.basePrice}
         </Typography>
         <Button onClick={() => setShowModal(true)} variant="contained" color="primary">
           Add to Cart
