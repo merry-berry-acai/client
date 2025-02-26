@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
-import { getCategoriesWithItems } from '../../api/mockApi'; // adjust import as needed
+import { getCategories } from '../../api/apiHandler'; // updated import
 
 const CategoryList = ({ onSelectCategory, selectedCategory }) => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    getCategoriesWithItems().then(data => setCategories(data));
+    getCategories().then(data => setCategories(data));
   }, []);
+
+  // Display error if API failed
+  if (categories === null) {
+    return <Typography>Error loading categories.</Typography>;
+  }
 
   return (
     <Box sx={{ 
@@ -21,14 +26,16 @@ const CategoryList = ({ onSelectCategory, selectedCategory }) => {
       ) : (
         categories.map(category => (
           <Card 
-            key={category.id} 
+            key={category._id} 
             variant="outlined" 
             sx={{ 
               boxShadow: 3, 
               cursor: 'pointer',
-              backgroundColor: selectedCategory === category.id ? 'primary.light' : 'inherit'
+              backgroundColor: selectedCategory === category._id ? 'rgba(138, 43, 226, 0.1)' : 'inherit',
+              borderColor: selectedCategory === category._id ? '#8a2be2' : 'inherit',
+              borderWidth: selectedCategory === category._id ? 2 : 1
             }}
-            onClick={() => onSelectCategory(category.id)}
+            onClick={() => onSelectCategory(category._id)}
           >
             <CardContent sx={{ pt: 2, pb: 2 }}>
               <Typography variant="h6">{category.name}</Typography>

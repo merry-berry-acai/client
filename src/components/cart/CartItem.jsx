@@ -1,124 +1,291 @@
 import React, { useState, useContext } from 'react';
-import { ListItem, ListItemText, Typography, Paper, Box, IconButton, Button } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { 
+  Typography, 
+  Paper, 
+  Box, 
+  IconButton, 
+  Button,
+  Grid,
+  Divider,
+  ButtonGroup,
+  ListItem,
+  ListItemText,
+  Collapse,
+  Chip
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CustomizationModal from '../menu-browsing/CustomisationModal';
 import { CartContext } from '../../contexts/CartContext';
 
 const CartItem = ({ item, variant }) => {
   const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [showCustomizations, setShowCustomizations] = useState(false);
   const { onUpdateCartItem, removeFromCart } = useContext(CartContext);
 
-  const customisationText = Array.isArray(item.customization)
-    ? item.customization.map(t => t.name).join(', ')
-    : item.customization;
-
-  const parsePrice = (priceStr) => parseFloat(priceStr.replace('$', ''));
-
-  // Calculate base price and topping total
+  // Calculate base price and topping total with validation
   let toppingTotal = 0;
-  if (Array.isArray(item.customization)) {
-    toppingTotal = item.customization.reduce((sum, t) => sum + (t.price ? parsePrice(t.price) : 0), 0);
-  } else if (item.customization && item.customization.price) {
-    toppingTotal = parsePrice(item.customization.price);
+  const normalizedCustomization = Array.isArray(item.customization) ? item.customization : [];
+  const hasCustomizations = normalizedCustomization.length > 0;
+  
+  if (hasCustomizations) {
+    toppingTotal = normalizedCustomization.reduce((sum, t) => {
+      // Ensure we have valid numbers
+      const price = typeof t.price === 'number' ? t.price : parseFloat(t.price || 0);
+      const quantity = t.quantity || 1;
+      return sum + (price * quantity);
+    }, 0);
   }
 
-  const baseTotal = item.basePrice + toppingTotal;
+  const baseTotal = parseFloat(item.basePrice || 0) + toppingTotal;
   const quantity = item.quantity || 1;
   const totalPrice = baseTotal * quantity;
 
+  // Format a summary of customizations for compact display
+  const formatCustomizationSummary = () => {
+    if (!hasCustomizations) return "";
+    
+    if (normalizedCustomization.length === 1) {
+      const topping = normalizedCustomization[0];
+      return `${topping.quantity || 1}× ${topping.name}`;
+    }
+    
+    return `${normalizedCustomization.length} topping${normalizedCustomization.length > 1 ? 's' : ''}`;
+  };
+
   const handleInlineQuantityChange = (newQuantity) => {
+    if (newQuantity < 1) return;
     onUpdateCartItem({ ...item, quantity: newQuantity });
   };
 
-  // New: Function to update customisation from the modal
-  const handleCustomisationChange = (selectedToppings) => {
-    onUpdateCartItem({ ...item, customization: selectedToppings });
-    setCustomModalOpen(false);
-  };
-
-  const handleModalAdd = (updatedItem) => {
+  const handleCustomisationChange = (updatedItem) => {
     onUpdateCartItem(updatedItem);
     setCustomModalOpen(false);
   };
 
+  const handleRemoveItem = () => {
+    // Use cartItemId if available for more reliable removal
+    if (item.cartItemId) {
+      removeFromCart(item._id, item.customization, item.cartItemId);
+    } else {
+      removeFromCart(item._id, item.customization);
+    }
+  };
+
+  // Dropdown variant for mini-cart
   if (variant === 'dropdown') {
     return (
       <ListItem>
         <ListItemText
           primary={item.name}
-          secondary={customisationText ? `Customisation: ${customisationText}` : null}
+          secondary={hasCustomizations ? formatCustomizationSummary() : null}
         />
-        <IconButton onClick={() => removeFromCart(item.id)}>
-          <DeleteIcon />
+        <Typography variant="body2" sx={{ mx: 2 }}>${totalPrice.toFixed(2)}</Typography>
+        <IconButton size="small" onClick={handleRemoveItem}>
+          <DeleteOutlineIcon fontSize="small" />
         </IconButton>
       </ListItem>
     );
   }
+
+  // Main cart view
   return (
-    <Paper style={{ padding: 16, marginBottom: 8 }} elevation={2}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        mb: 2,
+        p: 2,
+        border: '1px solid #eee',
+        borderRadius: 2
+      }}
+    >
+      <Grid container spacing={2} alignItems="center">
+        {/* Product Image */}
+        <Grid item xs={3} sm={2}>
           <img 
             src={item.image} 
             alt={item.name} 
-            style={{ width: '120px', height: 'auto', borderRadius: 8 }} 
+            style={{ 
+              width: '100%', 
+              height: 'auto', 
+              borderRadius: 8,
+              maxWidth: '100px',
+              objectFit: 'cover' 
+            }} 
           />
-          <div>
-            <Typography variant="h6" style={{ marginBottom: 8 }}>{item.name}</Typography>
-            {customisationText && (
-              <ul>
-                {Array.isArray(item.customization)
-                  ? item.customization.map(t => (
-                      <li key={t.id}>{t.name}</li>
-                    ))
-                  : <li>{item.customization}</li>}
-              </ul>
-            )}
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <Typography variant="body1" sx={{ mr: 1 }}>Quantity:</Typography>
-              <IconButton size="small" onClick={() => handleInlineQuantityChange(Math.max(quantity - 1, 1))}>
-                <RemoveCircleOutlineIcon />
-              </IconButton>
-              <Typography variant="body1" sx={{ mx: 1 }}>{quantity}</Typography>
-              <IconButton size="small" onClick={() => handleInlineQuantityChange(quantity + 1)}>
-                <AddCircleOutlineIcon />
-              </IconButton>
-              <Button variant="text" onClick={() => setCustomModalOpen(true)} sx={{ ml: 2 }}>
-                Edit Customization
+        </Grid>
+        
+        {/* Product Details */}
+        <Grid item xs={9} sm={4}>
+          <Typography variant="h6" gutterBottom>{item.name}</Typography>
+          
+          {hasCustomizations && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Chip 
+                label={formatCustomizationSummary()}
+                size="small"
+                color="primary"
+                sx={{ 
+                  bgcolor: 'rgba(138, 43, 226, 0.1)', 
+                  color: '#6a1fb1',
+                  borderRadius: '4px',
+                  mr: 1
+                }}
+              />
+              <Button
+                size="small"
+                onClick={() => setShowCustomizations(!showCustomizations)}
+                endIcon={showCustomizations ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{ 
+                  textTransform: 'none', 
+                  p: 0, 
+                  minWidth: 0,
+                  fontSize: '0.75rem',
+                  color: '#8a2be2'
+                }}
+              >
+                {showCustomizations ? 'Hide details' : 'View details'}
               </Button>
-              <IconButton onClick={() => removeFromCart(item.id)} sx={{ ml: 1 }}>
-                <DeleteIcon />
-              </IconButton>
             </Box>
-          </div>
-        </div>
-        <Box>
-          <Typography variant="subtitle1" color="text.primary">
+          )}
+          
+          {/* Collapsible customization details */}
+          {hasCustomizations && (
+            <Collapse in={showCustomizations}>
+              <Box 
+                sx={{
+                  bgcolor: '#f8f8f8',
+                  borderRadius: 1,
+                  p: 1,
+                  mb: 1.5,
+                  fontSize: '0.875rem'
+                }}
+              >
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                  Customization Details:
+                </Typography>
+                
+                {item.customization.map((topping, idx) => (
+                  <Box 
+                    key={`${topping._id || idx}`} 
+                    sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between',
+                      mb: 0.25
+                    }}
+                  >
+                    <Typography variant="body2">
+                      {topping.quantity || 1}× {topping.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      ${((topping.price || 0) * (topping.quantity || 1)).toFixed(2)}
+                    </Typography>
+                  </Box>
+                ))}
+                
+                {toppingTotal > 0 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5, pt: 0.5, borderTop: '1px dashed #ddd' }}>
+                    <Typography variant="body2" fontWeight="medium">
+                      Toppings total:
+                    </Typography>
+                    <Typography variant="body2" fontWeight="medium">
+                      ${toppingTotal.toFixed(2)}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Collapse>
+          )}
+          
+          <Button 
+            size="small" 
+            onClick={() => setCustomModalOpen(true)} 
+            sx={{ 
+              textTransform: 'none', 
+              p: 0,
+              color: '#8a2be2'
+            }}
+          >
+            Edit customization
+          </Button>
+        </Grid>
+        
+        {/* Quantity Controls */}
+        <Grid item xs={6} sm={2}>
+          <ButtonGroup size="small" aria-label="quantity control" sx={{ 
+            border: '1px solid rgba(0, 0, 0, 0.12)', 
+            borderRadius: 1
+          }}>
+            <IconButton 
+              onClick={() => handleInlineQuantityChange(quantity - 1)}
+              disabled={quantity <= 1}
+              sx={{ 
+                borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+                '&:hover': { color: '#8a2be2' } 
+              }}
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+            <Button 
+              disableRipple 
+              sx={{ 
+                minWidth: 40,
+                '&:hover': {
+                  bgcolor: 'transparent'
+                }
+              }}
+            >
+              {quantity}
+            </Button>
+            <IconButton 
+              onClick={() => handleInlineQuantityChange(quantity + 1)}
+              sx={{ 
+                borderLeft: '1px solid rgba(0, 0, 0, 0.12)',
+                '&:hover': { color: '#8a2be2' } 
+              }}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </ButtonGroup>
+        </Grid>
+        
+        {/* Price */}
+        <Grid item xs={4} sm={2} textAlign="right">
+          <Typography variant="body1" sx={{ fontWeight: 500 }}>
             ${totalPrice.toFixed(2)}
           </Typography>
-          {/* New Price Breakdown */}
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2">Base Price: ${item.basePrice.toFixed(2)}</Typography>
-            {Array.isArray(item.customization) && item.customization.length > 0 && (
-              <>
-                {item.customization.map(t => (
-                  <Typography variant="body2" key={t.id}>
-                    {t.name}: ${parsePrice(t.price).toFixed(2)}
-                  </Typography>
-                ))}
-                <Typography variant="body2">
-                  Toppings Total: ${toppingTotal.toFixed(2)}
-                </Typography>
-              </>
-            )}
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-              Subtotal: ${(totalPrice).toFixed(2)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="caption" color="text.secondary">
+              ${item.basePrice.toFixed(2)} base
             </Typography>
+            {toppingTotal > 0 && (
+              <Typography variant="caption" color="text.secondary">
+                +${toppingTotal.toFixed(2)} extras
+              </Typography>
+            )}
           </Box>
-        </Box>
-      </Box>
+        </Grid>
+        
+        {/* Remove Button */}
+        <Grid item xs={2} textAlign="right">
+          <IconButton 
+            color="default" 
+            onClick={handleRemoveItem}
+            size="small"
+            sx={{
+              '&:hover': {
+                color: '#f44336',
+              }
+            }}
+          >
+            <DeleteOutlineIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+
       {customModalOpen && (
         <CustomizationModal 
           open={customModalOpen} 

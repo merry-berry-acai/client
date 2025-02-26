@@ -1,40 +1,145 @@
 import React, { useState, useContext } from 'react';
-import { Card, CardMedia, CardContent, Typography, Button } from '@mui/material';
+import { Card, CardMedia, CardContent, Typography, Button, Box, Chip, Divider } from '@mui/material';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import CustomisationModal from './CustomisationModal';
 import { CartContext } from '../../contexts/CartContext';
 
 const MenuItem = ({ item }) => {
   const [showModal, setShowModal] = useState(false);
   const { addToCart } = useContext(CartContext);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleAddToCart = (selectedToppings, quantity) => {
     addToCart(item, selectedToppings, quantity);
     setShowModal(false);
   };
 
+  const imageURL = item.imageURL || new URL('../assets/default-item.png', import.meta.url).href;
+
   return (
-    <Card sx={{ p: 2, border: '1px solid #ddd', borderRadius: 2 }}>
-      <CardMedia
-        component="img"
-        image={item.image}
-        alt={item.name}
-        sx={{ width: '100%', height: 200, objectFit: 'cover', mb: 2, borderRadius: 1 }}
-      />
-      <CardContent>
-        <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 'bold', mb: 1 }}>
+    <Card 
+      elevation={isHovered ? 4 : 1} 
+      sx={{ 
+        borderRadius: 3,
+        overflow: 'hidden',
+        transition: 'all 0.3s ease-in-out',
+        transform: isHovered ? 'translateY(-4px)' : 'none',
+        '&:hover': { 
+          borderColor: '#8a2be2',
+        },
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Box sx={{ position: 'relative' }}>
+        <CardMedia
+          component="img"
+          image={imageURL}
+          alt={item.name}
+          sx={{ 
+            height: 220,
+            objectFit: 'cover',
+          }}
+        />
+        {item.isVegetarian && (
+          <Chip 
+            label="Vegetarian" 
+            size="small"
+            sx={{ 
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              backgroundColor: 'rgba(76, 175, 80, 0.9)',
+              color: 'white',
+              fontWeight: 'bold'
+            }}
+          />
+        )}
+        {item.isNew && (
+          <Chip 
+            label="New" 
+            size="small"
+            sx={{ 
+              position: 'absolute',
+              top: 10,
+              left: 10,
+              backgroundColor: 'rgba(138, 43, 226, 0.9)',
+              color: 'white',
+              fontWeight: 'bold'
+            }}
+          />
+        )}
+      </Box>
+      
+      <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h5" sx={{ 
+          fontSize: '1.3rem', 
+          fontWeight: 'bold', 
+          mb: 1,
+          color: '#212121'
+        }}>
           {item.name}
         </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        
+        <Typography variant="body2" sx={{ 
+          color: 'text.secondary',
+          mb: 2,
+          flexGrow: 1,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+        }}>
           {item.description}
         </Typography>
-        <Typography variant="h3" sx={{ color: 'secondary.main', fontWeight: 'bold', mb: 2 }}>
-          ${item.basePrice}
-        </Typography>
-        <Button onClick={() => setShowModal(true)} variant="contained" color="primary">
-          Add to Cart
-        </Button>
+        
+        <Divider sx={{ my: 1.5 }} />
+        
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mt: 1
+        }}>
+          <Typography variant="h6" sx={{ 
+            color: '#8a2be2', 
+            fontWeight: 'bold',
+            fontSize: '1.4rem'
+          }}>
+            ${parseFloat(item.basePrice).toFixed(2)}
+          </Typography>
+          
+          <Button 
+            onClick={() => setShowModal(true)} 
+            variant="contained" 
+            startIcon={<AddShoppingCartIcon />}
+            sx={{
+              backgroundColor: '#8a2be2',
+              borderRadius: '50px',
+              px: 2,
+              py: 1,
+              '&:hover': {
+                backgroundColor: '#6a1fb1',
+                boxShadow: '0 4px 12px rgba(138, 43, 226, 0.25)'
+              },
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Add
+          </Button>
+        </Box>
       </CardContent>
-      <CustomisationModal open={showModal} onClose={() => setShowModal(false)} onAdd={handleAddToCart} item={item} />
+      
+      <CustomisationModal 
+        key={item._id} 
+        open={showModal} 
+        onClose={() => setShowModal(false)} 
+        onAdd={handleAddToCart} 
+        item={item} 
+      />
     </Card>
   );
 };
