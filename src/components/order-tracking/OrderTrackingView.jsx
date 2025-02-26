@@ -1,11 +1,19 @@
 import React from "react";
 import PropTypes from "prop-types";
 
+// Define order status constants - pickup only
+const ORDER_STATUS = {
+  PROCESSING: 'Processing',
+  PREPARING: 'Preparing',
+  READY: 'Ready for Pickup',
+  COMPLETED: 'Completed'
+};
+
 const OrderTrackingView = ({ orderId }) => {
   // Mock order details - will be replaced with real data later
   const mockOrderDetails = {
     id: orderId,
-    status: "Processing",
+    status: ORDER_STATUS.PROCESSING, // Using the status constant
     date: "2024-03-14T10:30:00Z",
     items: [
       { id: 1, name: "Berry Blast Smoothie", quantity: 2, price: 8.99 },
@@ -13,6 +21,21 @@ const OrderTrackingView = ({ orderId }) => {
     ],
     total: 30.97,
     pickupTime: "2024-03-14T11:00:00Z",
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case ORDER_STATUS.PROCESSING:
+        return "bg-yellow-100 text-yellow-800";
+      case ORDER_STATUS.PREPARING:
+        return "bg-blue-100 text-blue-800";
+      case ORDER_STATUS.READY:
+        return "bg-green-100 text-green-800";
+      case ORDER_STATUS.COMPLETED:
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   const formatDate = (dateString) => {
@@ -26,8 +49,11 @@ const OrderTrackingView = ({ orderId }) => {
       <div className="mb-4">
         <p>Order ID: {mockOrderDetails.id}</p>
         <p>Order Date: {formatDate(mockOrderDetails.date)}</p>
-        <p>
-          Status: <span className="font-medium">{mockOrderDetails.status}</span>
+        <p className="mt-2">
+          Status: {" "}
+          <span className={`${getStatusColor(mockOrderDetails.status)} px-3 py-1 rounded-full text-sm font-medium`}>
+            {mockOrderDetails.status}
+          </span>
         </p>
         <p>Pickup Time: {formatDate(mockOrderDetails.pickupTime)}</p>
       </div>
