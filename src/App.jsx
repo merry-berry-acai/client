@@ -13,31 +13,35 @@ import PageNotFound from "./pages/404Page";
 import CategoryList from "./components/menu-browsing/CategoryList";
 import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
+import ErrorBoundary from "./components/ErrorBoundary.jsx"; // <-- new import
+import { MenuProvider } from "./contexts/MenuContext.jsx";
 
 function App() {
   return (
     <div className="App">
       <AuthProvider>
         <CartProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/services" element={<h1>Services</h1>} />
-          <Route path="/menu" element={<MenuPage />} />
-          <Route path="/auth/login" element={<AuthPage />} />
-          <Route path="/auth/register" element={<AuthPage />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/categories/" element={<CategoryList />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="*" element={<PageNotFound />} />
-        
-        </Routes>
-        <ToastContainer />
-      </Router>
-      <ToastContainer />
-      </CartProvider>
+          <MenuProvider>
+          <Router>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/services" element={<h1>Services</h1>} />
+                <Route path="/menu" element={<MenuPage />} />
+                <Route path="/auth/login" element={<AuthPage variant='signin' />} />
+                <Route path="/auth/register" element={<AuthPage variant='signup'/>} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/categories/" element={<CategoryList />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="*" element={<PageNotFound />} />
+              </Routes>
+            </ErrorBoundary>
+            <ToastContainer />
+          </Router>
+          </MenuProvider>
+        </CartProvider>
       </AuthProvider>
     </div>
   );

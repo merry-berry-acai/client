@@ -1,96 +1,299 @@
-import { FaHeart, FaClock, FaLeaf } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { FaHeart, FaClock, FaLeaf, FaArrowRight } from "react-icons/fa";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
-import { Container, Box, Typography, Button } from "@mui/material";
+import { Container, Box, Typography, Button, Grid, Card, CardContent, Divider, Paper } from "@mui/material";
 import Layout from "../components/Layout";
 import MenuItem from "../components/menu-browsing/MenuItem";
 import { getFeaturedItems } from "../api/mockApi";
+import { MenuContext } from "../contexts/MenuContext";
 
 const logo = new URL("../assets/logo.jpg", import.meta.url).href;
 
 const HomePage = () => {
   // Fetch featured items from API
-  const [featuredItems, setFeaturedItems] = useState([]);
-
-  useEffect(() => {
-    getFeaturedItems().then(data => setFeaturedItems(data));
-  }, []);
+  const {featuredItems} = useContext(MenuContext);
 
   return (
     <Layout>
+      {/* Hero Section */}
       <Box sx={{
-          background: 'linear-gradient(to bottom, #8e24aa, #4a148c)',
+          background: 'linear-gradient(135deg, #8e24aa, #4a148c)',
           color: '#fff',
-          py: 8,
-          textAlign: 'center'
+          py: { xs: 6, md: 10 },
+          textAlign: 'center',
+          borderBottom: '5px solid #6a1b9a',
+          position: 'relative',
+          overflow: 'hidden',
         }}>
-        <Container>
+        <Container maxWidth="md">
           <Box
             component="img"
             src={logo}
             alt="Merry Berry Logo"
             sx={{
+              width: { xs: 120, md: 150 },
+              height: { xs: 120, md: 150 },
               display: "block",
               margin: "0 auto",
               borderRadius: "50%",
-              mb: 2
+              mb: 4,
+              border: "4px solid white",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
             }}
           />
-          <Typography variant="h2" gutterBottom>
+          <Typography 
+            variant="h1" 
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: "2.5rem", md: "4rem" },
+              mb: 2,
+              letterSpacing: "-0.5px"
+            }}
+          >
             Craft Your Perfect Bowl
           </Typography>
-          <Typography variant="h5" gutterBottom>
-            Fresh ingredients, endless combinations
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              mb: 4, 
+              maxWidth: "700px",
+              mx: "auto",
+              opacity: 0.9,
+              fontWeight: 300
+            }}
+          >
+            Fresh ingredients, endless combinations, delivered with love
           </Typography>
-          <Button component={Link} to="/order" variant="contained" sx={{ mt: 2 }}>
+          <Button 
+            component={Link} 
+            to="/menu" 
+            variant="contained" 
+            size="large"
+            endIcon={<FaArrowRight />}
+            sx={{ 
+              mt: 2,
+              py: 1.5, 
+              px: 4,
+              borderRadius: 2,
+              fontSize: "1.1rem",
+              textTransform: "none",
+              backgroundColor: "#fff",
+              color: "#4a148c",
+              '&:hover': {
+                backgroundColor: "#f3e5f5",
+                boxShadow: "0 6px 15px rgba(0,0,0,0.2)"
+              }
+            }}
+          >
             Start Your Order
           </Button>
         </Container>
       </Box>
 
-      <Container sx={{ py: 8 }}>
-        <Typography variant="h4" gutterBottom>
-          Most Popular Creations
-        </Typography>
-        <Box sx={{
-          display: "grid",
-          gap: 4,
-          gridTemplateColumns: {
-            xs: "repeat(1, 1fr)",
-            md: "repeat(2, 1fr)",
-            lg: "repeat(3, 1fr)"
-          }
-        }}>
-          {featuredItems.length === 0 ? (
-            <Typography>Loading...</Typography>
-          ) : (
-            featuredItems.map((item) => (
-              <Box key={item.id}>
-                <MenuItem item={item} />
-              </Box>
-            ))
-          )}
-        </Box>
-      </Container>
-
-      <Box sx={{ backgroundColor: '#f5f5f5', py: 8 }}>
+      {/* Features Section */}
+      <Box sx={{ backgroundColor: '#fff', py: 6 }}>
         <Container>
-          <Box container spacing={4}>
-            <Box item xs={12} md={4} textAlign="center">
-              <FaLeaf size={32} style={{ color: '#8e24aa' }} />
-              <Typography variant="h6">100% Organic</Typography>
-              <Typography>Locally sourced ingredients</Typography>
-            </Box>
-            <Box item xs={12} md={4} textAlign="center">
-              <FaClock size={32} style={{ color: '#8e24aa' }} />
-              <Typography variant="h6">Order Online</Typography>
-              <Typography>Skip the Line</Typography>
-            </Box>
-            <Box item xs={12} md={4} textAlign="center">
-              <FaHeart size={32} style={{ color: '#8e24aa' }} />
-              <Typography variant="h6">Customizable</Typography>
-              <Typography>Build your perfect combination</Typography>
-            </Box>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={0} sx={{ p: 4, height: '100%', textAlign: "center", border: '1px solid #e0e0e0', borderRadius: 2 }}>
+                <FaLeaf size={40} style={{ color: '#8e24aa', marginBottom: '16px' }} />
+                <Typography variant="h5" gutterBottom fontWeight={600}>100% Organic</Typography>
+                <Typography variant="body1" color="text.secondary">We're committed to using locally sourced, fresh ingredients in all our bowls.</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={0} sx={{ p: 4, height: '100%', textAlign: "center", border: '1px solid #e0e0e0', borderRadius: 2 }}>
+                <FaClock size={40} style={{ color: '#8e24aa', marginBottom: '16px' }} />
+                <Typography variant="h5" gutterBottom fontWeight={600}>Order Online</Typography>
+                <Typography variant="body1" color="text.secondary">Skip the line by ordering ahead through our convenient online platform.</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={0} sx={{ p: 4, height: '100%', textAlign: "center", border: '1px solid #e0e0e0', borderRadius: 2 }}>
+                <FaHeart size={40} style={{ color: '#8e24aa', marginBottom: '16px' }} />
+                <Typography variant="h5" gutterBottom fontWeight={600}>Customizable</Typography>
+                <Typography variant="body1" color="text.secondary">Build your perfect bowl with our wide variety of bases, toppings, and dressings.</Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Featured Items Section */}
+      <Box sx={{ py: 8, backgroundColor: '#f9f4fc' }}>
+        <Container>
+          <Box sx={{ mb: 6, textAlign: 'center' }}>
+            <Typography 
+              variant="h2" 
+              component="h2" 
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: "2rem", md: "2.75rem" },
+                mb: 1,
+                color: '#4a148c'
+              }}
+            >
+              Most Popular Creations
+            </Typography>
+            <Divider sx={{ width: '80px', margin: '16px auto', borderColor: '#8e24aa', borderWidth: 2 }} />
+            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: '700px', mx: 'auto', mt: 2 }}>
+              Discover our customers' favorite bowls, crafted with the freshest ingredients
+            </Typography>
+          </Box>
+          
+          <Grid container spacing={4}>
+            {featuredItems.length === 0 ? (
+              <Grid item xs={12} sx={{ textAlign: 'center', py: 4 }}>
+                <Typography>Loading featured items...</Typography>
+              </Grid>
+            ) : (
+              featuredItems.map((item) => (
+                <Grid item xs={12} sm={6} md={4} key={item.id}>
+                  <MenuItem key={item._id} item={item} />
+                </Grid>
+              ))
+            )}
+          </Grid>
+          
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
+            <Button 
+              component={Link} 
+              to="/menu" 
+              variant="outlined" 
+              size="large"
+              sx={{ 
+                px: 4, 
+                py: 1,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1.1rem',
+                borderColor: '#8a2be2',
+                color: '#8a2be2',
+                '&:hover': {
+                  borderColor: '#6a1fb1',
+                  backgroundColor: 'rgba(138, 43, 226, 0.08)'
+                }
+              }}
+            >
+              View Full Menu
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+      
+      {/* Testimonials Section */}
+      <Box sx={{ backgroundColor: '#fff', py: 8 }}>
+        <Container>
+          <Typography 
+            variant="h3" 
+            textAlign="center" 
+            mb={6} 
+            sx={{ 
+              fontWeight: 600,
+              color: '#4a148c'
+            }}
+          >
+            What Our Customers Say
+          </Typography>
+          
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Card elevation={2} sx={{ height: '100%', borderRadius: 2 }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography variant="body1" sx={{ fontStyle: 'italic', mb: 2 }}>
+                    "The açai bowl was incredible! Fresh fruit, perfect texture, and the staff was so friendly."
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#8a2be2' }}>
+                    - Sarah M.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Card elevation={2} sx={{ height: '100%', borderRadius: 2 }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography variant="body1" sx={{ fontStyle: 'italic', mb: 2 }}>
+                    "I love being able to customize my bowl exactly how I want it. Great variety and always fresh!"
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#8a2be2' }}>
+                    - Michael T.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Card elevation={2} sx={{ height: '100%', borderRadius: 2 }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography variant="body1" sx={{ fontStyle: 'italic', mb: 2 }}>
+                    "The online ordering system is so convenient. My go-to lunch spot during work days!"
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#8a2be2' }}>
+                    - Jessica L.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+      
+      {/* Call to Action */}
+      <Box sx={{ 
+        backgroundColor: '#8e24aa', 
+        py: { xs: 6, md: 10 }, 
+        color: 'white', 
+        textAlign: 'center'
+      }}>
+        <Container>
+          <Typography variant="h3" fontWeight={700} mb={3}>
+            Ready to Try Merry Berry?
+          </Typography>
+          <Typography variant="h6" sx={{ maxWidth: '700px', mx: 'auto', mb: 4, opacity: 0.9 }}>
+            Order online for pickup or delivery and enjoy the freshest bowls in town
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Button 
+              component={Link} 
+              to="/menu" 
+              variant="contained" 
+              color="primary" 
+              size="large"
+              sx={{ 
+                backgroundColor: 'white', 
+                color: '#8e24aa', 
+                px: 4, 
+                py: 1.5, 
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1.1rem',
+                '&:hover': { 
+                  backgroundColor: '#f3e5f5',
+                }
+              }}
+            >
+              Order Now
+            </Button>
+            <Button 
+              component={Link} 
+              to="/locations" 
+              variant="outlined" 
+              size="large"
+              sx={{ 
+                borderColor: 'white', 
+                color: 'white', 
+                px: 4, 
+                py: 1.5, 
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '1.1rem',
+                '&:hover': { 
+                  borderColor: 'white',
+                  backgroundColor: 'rgba(255,255,255,0.1)'
+                }
+              }}
+            >
+              Find Locations
+            </Button>
           </Box>
         </Container>
       </Box>

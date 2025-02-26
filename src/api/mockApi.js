@@ -108,10 +108,16 @@ const PREVIOUS_ORDERS = {
   "EszW3BDsb4P6qLp9gJ03IRkCTKn2": [
     {
       id: 1,
-      title: "Classic Açaí Bowl Order",
-      company: "Smoothie Express",
       period: "2023-01-15",
       description: "Order delivered successfully.",
+      items: [{
+        id: 1,
+        name: "Classic Açaí Bowl",
+        image: new URL("../assets/acai-bowl.png", import.meta.url).href,
+        price: "$9.99",
+        quantity: 1,
+        toppings: [ TOPPINGS[0], TOPPINGS[1], TOPPINGS[2] ]
+      }]
     },
     {
       id: 2,
