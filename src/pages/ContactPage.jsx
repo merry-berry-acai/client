@@ -44,7 +44,11 @@ const ContactPage = () => {
                 <Field as="textarea" name="message" className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                 <ErrorMessage name="message" component="div" className="text-red-500 text-sm mt-1" />
               </div>
-              <button type="submit" disabled={isSubmitting} className="w-full bg-indigo-600 text-white p-2 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="w-full bg-purple-600 text-white p-2 rounded-md shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
                 Send
               </button>
             </Form>
