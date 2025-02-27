@@ -319,6 +319,47 @@ async function deleteTopping(id) {
   });
 }
 
+// ==== Payment & Checkout API ====
+
+/**
+ * Create a checkout session with Stripe
+ * @param {Object} checkoutData - Data required for checkout
+ * @param {Array} checkoutData.items - Cart items for checkout
+ * @param {Object} checkoutData.customerInfo - Customer information (optional)
+ * @param {string} checkoutData.successUrl - URL to redirect after successful payment
+ * @param {string} checkoutData.cancelUrl - URL to redirect if checkout is cancelled
+ * @returns {Promise<Object>} - Checkout session data including client secret
+ */
+async function createCheckoutSession(checkoutData) {
+  if (!checkoutData || !checkoutData.items || !checkoutData.items.length) {
+    throw new Error("Checkout requires at least one item");
+  }
+
+  return makeRequest({
+    method: 'post',
+    endpoint: '/checkout/create-session',
+    data: checkoutData,
+    validateResponse: (response) => response && response.clientSecret
+  });
+}
+
+/**
+ * Retrieve checkout session status
+ * @param {string} sessionId - Stripe checkout session ID
+ * @returns {Promise<Object>} - Session status information
+ */
+async function getCheckoutSession(sessionId) {
+  if (!sessionId) {
+    throw new Error("Session ID is required");
+  }
+  
+  return makeRequest({
+    method: 'get',
+    endpoint: `/checkout/sessions/${sessionId}`,
+    retries: 1
+  });
+}
+
 // ==== Other API Methods ====
 
 /**
@@ -426,6 +467,9 @@ export {
   createTopping,
   updateTopping,
   deleteTopping,
+  
+  createCheckoutSession,
+  getCheckoutSession,
   
   clearCache,
   
