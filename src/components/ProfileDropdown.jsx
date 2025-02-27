@@ -6,7 +6,7 @@ import { signOutUser } from '../utils/firebase';
 import { getUserPhoto } from '../utils/localStorage';
 
 const ProfileDropdown = () => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, isAdmin } = useContext(AuthContext);
 
   const profileInitial = currentUser.displayName ? currentUser.displayName.charAt(0) : 'U';
   const photoData = getUserPhoto();
@@ -87,6 +87,20 @@ const ProfileDropdown = () => {
         >
           Profile
         </MenuItem>
+        
+        {isAdmin && (
+          <MenuItem 
+            onClick={handleClose} 
+            component={Link} 
+            to="/admin"
+            sx={{ 
+              color: 'purple',
+              '&:hover': { bgcolor: 'rgba(128, 0, 128, 0.08)' } 
+            }}
+          >
+            Admin Panel
+          </MenuItem>
+        )}
         
         <MenuItem 
           onClick={handleLogout}

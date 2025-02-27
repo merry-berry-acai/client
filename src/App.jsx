@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
 import ErrorBoundary from "./components/ErrorBoundary.jsx"; // <-- new import
 import { MenuProvider } from "./contexts/MenuContext.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/categories/" element={<CategoryList />} />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="admin" element={<AdminPage />} />
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
             </ErrorBoundary>
