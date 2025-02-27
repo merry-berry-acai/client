@@ -149,10 +149,10 @@ const CartDropdown = () => {
                   sx={{ 
                     flex: 1, 
                     textTransform: 'none',
-                    color: 'purple',
-                    borderColor: 'purple',
+                    color: '#8a2be2',
+                    borderColor: '#8a2be2',
                     '&:hover': {
-                      borderColor: 'purple',
+                      borderColor: '#6a1fb1',
                     }
                   }}
                 >
@@ -165,9 +165,9 @@ const CartDropdown = () => {
                   sx={{ 
                     flex: 1, 
                     textTransform: 'none',
-                    bgcolor: 'purple',
+                    bgcolor: '#8a2be2',
                     '&:hover': {
-                      bgcolor: 'darkviolet',
+                      bgcolor: '#6a1fb1',
                     }
                   }}
                 >
