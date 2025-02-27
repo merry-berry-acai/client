@@ -16,6 +16,7 @@ import AuthPage from "./pages/AuthPage";
 import ErrorBoundary from "./components/ErrorBoundary.jsx"; // <-- new import
 import { MenuProvider } from "./contexts/MenuContext.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import CheckoutPage from './pages/CheckoutPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/auth/login" element={<AuthPage variant='signin' />} />
                 <Route path="/auth/register" element={<AuthPage variant='signup'/>} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/categories/" element={<CategoryList />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="admin" element={<AdminPage />} />
