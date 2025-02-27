@@ -76,35 +76,32 @@ export const CartProvider = ({ children }) => {
 		};
 		
 		setCartItems(prevItems => {
-			// Find the exact item to update based on cartItemId if available
-			if (updatedItem.cartItemId) {
-				const itemIndex = prevItems.findIndex(item => item.cartItemId === updatedItem.cartItemId);
+				// First try to find the item by cartItemId (most reliable)
+				if (updatedItem.cartItemId) {
+					const itemIndex = prevItems.findIndex(item => item.cartItemId === updatedItem.cartItemId);
+					if (itemIndex >= 0) {
+						const newItems = [...prevItems];
+						newItems[itemIndex] = updatedItemWithNormalizedCustomization;
+						toast.success("Cart item updated!");
+						return newItems;
+					}
+				}
+				
+				// If cartItemId match fails or isn't available, try matching by _id
+				const itemIndex = prevItems.findIndex(item => item._id === updatedItem._id);
+				
 				if (itemIndex >= 0) {
 					const newItems = [...prevItems];
 					newItems[itemIndex] = updatedItemWithNormalizedCustomization;
 					toast.success("Cart item updated!");
 					return newItems;
-				}
-			}
-			
-			// Fallback to finding by ID and customization
-			const itemIndex = prevItems.findIndex(item => 
-				item._id === updatedItem._id && 
-				getItemKey(item, item.customization) === getItemKey(updatedItem, normalizedCustomization)
-			);
-			
-			if (itemIndex >= 0) {
-				const newItems = [...prevItems];
-				newItems[itemIndex] = updatedItemWithNormalizedCustomization;
-				toast.success("Cart item updated!");
-				return newItems;
-			}
-			
-			// If we can't find the item, just return the unchanged items
-			console.warn("Cart item not found for update:", updatedItem);
-			return prevItems;
-		});
-	}, [normalizeCustomization, getItemKey, setCartItems]);
+					}
+					
+					// If we still can't find the item, add it as a new item
+					toast.success("Item added to cart!");
+					return [...prevItems, updatedItemWithNormalizedCustomization];
+				});
+			}, [normalizeCustomization, setCartItems]);
 
 	const removeFromCart = useCallback((itemId, customization, cartItemId) => {
 		// If we have a cartItemId, use that for exact removal
