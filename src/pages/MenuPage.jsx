@@ -17,10 +17,10 @@ const MenuPage = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  if (menuItems.length === 0) {
+  if (menuItems?.length === 0) {
     return <Typography>Loading menu items...</Typography>;
   }
-  if (categories.length === 0) {
+  if (categories?.length === 0) {
     return <Typography>Loading categories...</Typography>;
   }
 
@@ -218,7 +218,7 @@ const MenuPage = () => {
                     ? `${categories.find(c => c._id === selectedCategory)?.name || 'Category'} Items` 
                     : 'All Menu Items'} 
                   <Typography component="span" sx={{ fontWeight: 'normal' }}>
-                    ({displayedItems.length} items)
+                    ({displayedItems?.length} items)
                   </Typography>
                 </Typography>
                 
