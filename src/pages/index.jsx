@@ -1,0 +1,10 @@
+export { default as HomePage } from './HomePage';
+export { default as AboutPage } from './AboutPage';
+export { default as MenuPage } from './MenuPage';
+export { default as ContactPage } from './ContactPage';
+export { default as CartPage } from './CartPage';
+export { default as PageNotFound } from './404Page';
+export { default as ProfilePage } from './ProfilePage';
+export { default as AuthPage } from './AuthPage';
+export { default as AdminPage } from './AdminPage';
+export { default as StatusPage } from './StatusPage';
