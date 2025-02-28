@@ -161,14 +161,14 @@ const HomePage = () => {
           </Box>
           
           <Grid container spacing={4}>
-            {featuredItems.length === 0 ? (
+            {!featuredItems?.length ? (
               <Grid item xs={12} sx={{ textAlign: 'center', py: 4 }}>
                 <Typography>Loading featured items...</Typography>
               </Grid>
             ) : (
-              featuredItems.map((item) => (
-                <Grid item xs={12} sm={6} md={4} key={item._id}>
-                  <MenuItem key={item._id} item={item} />
+              featuredItems?.map((item) => (
+                <Grid item xs={12} sm={6} md={4} key={item?._id}>
+                  <MenuItem key={item?._id} item={item} />
                 </Grid>
               ))
             )}
