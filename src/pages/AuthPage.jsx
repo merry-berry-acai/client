@@ -65,12 +65,13 @@ const AuthPage = ({ variant }) => {
       if (variant === "signin") {
         await signIn(values.email, values.password, navigate);
       } else {
+        // For signup, pass both displayName and additional user data (favorites)
         await signUp(
           values.email, 
           values.password, 
           navigate, 
-          values.displayName,
-          { favorites: values.favorites }
+          values.displayName,  // Pass the display name
+          { favorites: values.favorites } // Pass additional user data
         );
       }
     } catch (error) {
