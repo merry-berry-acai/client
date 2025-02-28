@@ -91,6 +91,44 @@ const CartItem = ({ item, variant }) => {
     );
   }
 
+  // Checkout variant (read-only, simplified view)
+  if (variant === 'checkout') {
+    return (
+      <Box sx={{ mb: 2, py: 1 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={3} sm={2}>
+            <Box 
+              component="img" 
+              src={item.imageUrl || item.image || '/placeholder-image.jpg'} 
+              alt={item.name}
+              sx={{ 
+                width: '100%', 
+                height: '60px',
+                objectFit: 'cover',
+                borderRadius: 1
+              }}
+            />
+          </Grid>
+          <Grid item xs={9} sm={10}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body1">{item.name}</Typography>
+              <Typography variant="body1">${totalPrice.toFixed(2)}</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Qty: {quantity}
+            </Typography>
+            {hasCustomizations && (
+              <Typography variant="body2" color="text.secondary">
+                {normalizedCustomization.map(c => c.name).join(', ')}
+              </Typography>
+            )}
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 1 }} />
+      </Box>
+    );
+  }
+
   // Main cart view
   return (
     <Paper 
