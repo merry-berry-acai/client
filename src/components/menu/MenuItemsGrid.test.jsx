@@ -4,7 +4,6 @@ import "@testing-library/jest-dom";
 import { describe, test, expect, vi } from "vitest";
 import MenuItemsGrid from "./MenuItemsGrid";
 
-// Mock child components
 vi.mock("../../components/menu-browsing/MenuItem", () => ({
   default: ({ item }) => (
     <div data-testid="menu-item" data-item-id={item._id}>
@@ -60,8 +59,6 @@ describe("MenuItemsGrid Component", () => {
   test("renders correct heading with mobile variant", () => {
     render(<MenuItemsGrid {...defaultProps} isMobile={true} />);
 
-    // In mobile mode, the heading should still be present but with different styling
-    // We can still check for the text content
     expect(screen.getByText("All Menu Items")).toBeInTheDocument();
   });
 
@@ -108,7 +105,7 @@ describe("MenuItemsGrid Component", () => {
       />
     );
 
-    const closeButton = screen.getByTestId("CancelIcon"); // or you can use: screen.getByLabelText("delete")
+    const closeButton = screen.getByTestId("CancelIcon");
     fireEvent.click(closeButton);
 
     expect(setSearchTerm).toHaveBeenCalledWith("");
@@ -117,7 +114,6 @@ describe("MenuItemsGrid Component", () => {
   test("does not render search chip when searchTerm is empty", () => {
     render(<MenuItemsGrid {...defaultProps} searchTerm="" />);
 
-    // Should not find any chip with "Search:" text
     expect(screen.queryByText(/Search:/)).not.toBeInTheDocument();
   });
 
@@ -158,7 +154,6 @@ describe("MenuItemsGrid Component", () => {
       <MenuItemsGrid {...defaultProps} selectedCategory="non-existent-id" />
     );
 
-    // Should show "Category" as fallback
     expect(screen.getByText("Category")).toBeInTheDocument();
   });
 });

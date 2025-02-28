@@ -31,11 +31,9 @@ describe("SortControl Component", () => {
   it("has the correct MaterialUI classes", () => {
     render(<SortControl sortBy="default" setSortBy={mockSetSortBy} />);
 
-    // Check for the form control component
     const formControl = document.querySelector(".MuiFormControl-root");
     expect(formControl).toBeInTheDocument();
 
-    // Check for the input base with the correct classes
     const inputBase = document.querySelector(".MuiInputBase-root");
     expect(inputBase).toBeInTheDocument();
     expect(inputBase).toHaveClass("MuiOutlinedInput-root");
@@ -45,7 +43,6 @@ describe("SortControl Component", () => {
   it("renders dropdown icon", () => {
     render(<SortControl sortBy="default" setSortBy={mockSetSortBy} />);
 
-    // Check for the dropdown icon
     const dropdownIcon = document.querySelector(
       '[data-testid="ArrowDropDownIcon"]'
     );
