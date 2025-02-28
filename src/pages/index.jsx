@@ -7,3 +7,4 @@ export { default as PageNotFound } from './404Page';
 export { default as ProfilePage } from './ProfilePage';
 export { default as AuthPage } from './AuthPage';
 export { default as AdminPage } from './AdminPage';
+export { default as StatusPage } from './StatusPage';

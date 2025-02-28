@@ -11,7 +11,8 @@ import {
   PageNotFound, 
   ProfilePage, 
   AuthPage, 
-  AdminPage 
+  AdminPage,
+  StatusPage
 } from "./pages";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/categories/" element={<CategoryList />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="admin" element={<AdminPage />} />
+                <Route path="status" element={<StatusPage />} />
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
             </ErrorBoundary>
