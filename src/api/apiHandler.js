@@ -374,13 +374,13 @@ async function deleteTopping(id) {
 // ==== Payment & Checkout API ====
 
 /**
- * Create a checkout session with Stripe
+ * Create a checkout session with mock payment API
  * @param {Object} checkoutData - Data required for checkout
  * @param {Array} checkoutData.items - Cart items for checkout
  * @param {Object} checkoutData.customerInfo - Customer information (optional)
  * @param {string} checkoutData.successUrl - URL to redirect after successful payment
  * @param {string} checkoutData.cancelUrl - URL to redirect if checkout is cancelled
- * @returns {Promise<Object>} - Checkout session data including client secret
+ * @returns {Promise<Object>} - Checkout session data including session ID
  */
 async function createCheckoutSession(checkoutData) {
   if (!checkoutData || !checkoutData.items || !checkoutData.items.length) {
@@ -389,15 +389,33 @@ async function createCheckoutSession(checkoutData) {
 
   return makeRequest({
     method: 'post',
-    endpoint: '/checkout/create-session',
+    endpoint: '/checkout/mock-session',
     data: checkoutData,
-    validateResponse: (response) => response && response.clientSecret
+    validateResponse: (response) => response && response.sessionId
+  });
+}
+
+/**
+ * Process a mock order payment
+ * @param {Object} paymentDetails - Payment details
+ * @returns {Promise<Object>} - Payment confirmation
+ */
+async function processPayment(paymentDetails) {
+  if (!paymentDetails) {
+    throw new Error("Payment details are required");
+  }
+  
+  return makeRequest({
+    method: 'post',
+    endpoint: '/checkout/process-payment',
+    data: paymentDetails,
+    retries: 1
   });
 }
 
 /**
  * Retrieve checkout session status
- * @param {string} sessionId - Stripe checkout session ID
+ * @param {string} sessionId - Mock checkout session ID
  * @returns {Promise<Object>} - Session status information
  */
 async function getCheckoutSession(sessionId) {
@@ -567,6 +585,7 @@ export {
   deleteTopping,
   
   createCheckoutSession,
+  processPayment,
   getCheckoutSession,
   
   clearCache,
