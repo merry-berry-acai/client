@@ -12,7 +12,8 @@ import {
   ProfilePage, 
   AuthPage, 
   AdminPage,
-  StatusPage
+  StatusPage,
+  CheckoutPage
 } from "./pages";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
@@ -40,7 +41,8 @@ function App() {
                 <Route path="/auth/login" element={<AuthPage variant='signin' />} />
                 <Route path="/auth/register" element={<AuthPage variant='signup'/>} />
                 <Route path="/cart" element={<CartPage />} />
-                <Route path="/categories/" element={<CategoryList />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/categories" element={<CategoryList />} />
                 <Route path="/status" element={<StatusPage />} />
                 
                 {/* Protected routes - require authentication */}
