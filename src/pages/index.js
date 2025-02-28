@@ -9,6 +9,7 @@ import ProfilePage from './ProfilePage';
 import AuthPage from './AuthPage';
 import AdminPage from './AdminPage';
 import StatusPage from './StatusPage';
+import CheckoutPage from './CheckoutPage';
 
 export {
   HomePage,
@@ -20,5 +21,6 @@ export {
   ProfilePage,
   AuthPage,
   AdminPage,
-  StatusPage
+  StatusPage,
+  CheckoutPage
 };
