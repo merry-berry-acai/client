@@ -1,7 +1,7 @@
-import { FaHeart, FaClock, FaLeaf, FaArrowRight } from "react-icons/fa";
+import { FaHeart, FaClock, FaLeaf, FaArrowRight, FaInfoCircle, FaMapMarkerAlt } from "react-icons/fa";
 import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
-import { Container, Box, Typography, Button, Grid, Card, CardContent, Divider, Paper } from "@mui/material";
+import { Container, Box, Typography, Button, Grid, Card, CardContent, Divider, Paper, Chip } from "@mui/material";
 import Layout from "../components/Layout";
 import MenuItem from "../components/menu-browsing/MenuItem";
 import { getFeaturedItems } from "../api/mockApi";
@@ -26,6 +26,25 @@ const HomePage = () => {
           overflow: 'hidden',
         }}>
         <Container maxWidth="md">
+          {/* Project Indicator */}
+          <Chip 
+            icon={<FaInfoCircle />} 
+            label="School Project" 
+            color="default" 
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#4a148c',
+              fontWeight: 500,
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,1)'
+              }
+            }}
+          />
+          
           <Box
             component="img"
             src={logo}
@@ -62,7 +81,7 @@ const HomePage = () => {
               fontWeight: 300
             }}
           >
-            Fresh ingredients, endless combinations, delivered with love
+            Fresh ingredients, endless combinations, made with love
           </Typography>
           <Button 
             component={Link} 
@@ -148,7 +167,7 @@ const HomePage = () => {
               </Grid>
             ) : (
               featuredItems.map((item) => (
-                <Grid item xs={12} sm={6} md={4} key={item.id}>
+                <Grid item xs={12} sm={6} md={4} key={item._id}>
                   <MenuItem key={item._id} item={item} />
                 </Grid>
               ))
@@ -237,6 +256,44 @@ const HomePage = () => {
         </Container>
       </Box>
       
+      {/* Project Info Section */}
+      <Box sx={{ backgroundColor: '#f5f5f5', py: 6 }}>
+        <Container>
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Typography variant="h4" fontWeight={600} color="#4a148c" gutterBottom>
+                About This Project
+              </Typography>
+              <Typography variant="body1" paragraph>
+                This Merry Berry website is a school project created as part of the Coder Academy curriculum. It showcases 
+                frontend development skills using React, Material UI, and context management.
+              </Typography>
+              <Typography variant="body1">
+                While this is a demo site, we've designed it to demonstrate realistic e-commerce functionality 
+                for a hypothetical single-location açai bowl shop.
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} gutterBottom color="#4a148c">
+                    <FaMapMarkerAlt style={{ marginRight: '8px' }} /> Our Demo Location
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    123 Smoothie Lane<br />
+                    Brisbane, QLD 4000<br />
+                    Australia
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Hours:</strong> Mon-Fri: 8am-8pm, Sat-Sun: 9am-5pm
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+      
       {/* Call to Action */}
       <Box sx={{ 
         backgroundColor: '#8e24aa', 
@@ -249,7 +306,7 @@ const HomePage = () => {
             Ready to Try Merry Berry?
           </Typography>
           <Typography variant="h6" sx={{ maxWidth: '700px', mx: 'auto', mb: 4, opacity: 0.9 }}>
-            Order online for pickup or delivery and enjoy the freshest bowls in town
+            Experience our demo ordering system and explore the features we've built
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Button 
@@ -272,27 +329,6 @@ const HomePage = () => {
               }}
             >
               Order Now
-            </Button>
-            <Button 
-              component={Link} 
-              to="/locations" 
-              variant="outlined" 
-              size="large"
-              sx={{ 
-                borderColor: 'white', 
-                color: 'white', 
-                px: 4, 
-                py: 1.5, 
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1.1rem',
-                '&:hover': { 
-                  borderColor: 'white',
-                  backgroundColor: 'rgba(255,255,255,0.1)'
-                }
-              }}
-            >
-              Find Locations
             </Button>
           </Box>
         </Container>

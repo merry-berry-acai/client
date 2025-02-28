@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Configuration
 const API_CONFIG = {
-  baseURL: "https://merry-berry.onrender.com/",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 8000,
   retries: 2,
   retryDelay: 1000,
