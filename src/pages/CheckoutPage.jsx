@@ -1,10 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout
-} from '@stripe/react-stripe-js';
 import {
   Container,
   Typography,
@@ -14,27 +9,39 @@ import {
   Alert,
   Stepper,
   Step,
-  StepLabel,
-  Button,
-  Grid,
-  Divider
+  StepLabel
 } from '@mui/material';
 import { CartContext } from '../contexts/CartContext';
-import { createCheckoutSession } from '../api/apiHandler';
+import { createCheckoutSession, processPayment } from '../api/apiHandler';
 import Layout from '../components/Layout';
-
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+import { 
+  CheckoutStepReview, 
+  CheckoutStepPayment, 
+  CheckoutStepConfirmation 
+} from '../components/checkout';
 
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  const [clientSecret, setClientSecret] = useState('');
+  const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
+  
+  // Add a ref to track if cart was cleared
+  const cartCleared = useRef(false);
+  
+  // Payment form state
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardName: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    billingAddress: ''
+  });
+  const [formErrors, setFormErrors] = useState({});
   
   const steps = ['Review order', 'Payment', 'Confirmation'];
   
@@ -57,12 +64,13 @@ const CheckoutPage = () => {
   const { subtotal, tax, total } = calculateTotals();
 
   useEffect(() => {
-    // Check for return status from Stripe
+    // Check for return status from payment
     const paymentStatus = searchParams.get('payment_status');
     
-    if (paymentStatus === 'success') {
+    if (paymentStatus === 'success' && !cartCleared.current) {
       setActiveStep(2); // Move to confirmation step
       clearCart();      // Clear the cart on successful payment
+      cartCleared.current = true; // Mark that we've cleared the cart
       setLoading(false);
       return;
     }
@@ -70,6 +78,11 @@ const CheckoutPage = () => {
     if (paymentStatus === 'cancelled') {
       navigate('/cart');
       return;
+    }
+    
+    // Reset the cartCleared ref if we're not in success state
+    if (paymentStatus !== 'success') {
+      cartCleared.current = false;
     }
     
     // Don't try to create a checkout session if cart is empty
@@ -101,49 +114,147 @@ const CheckoutPage = () => {
         };
         
         const response = await createCheckoutSession(checkoutData);
-        setClientSecret(response.clientSecret);
-        setActiveStep(1); // Move to payment step
+        setSessionId(response.sessionId);
+        setActiveStep(0); // Start at review step
       } catch (err) {
         console.error("Error creating checkout session:", err);
-        setError("We couldn't initialize the payment process. Please try again.");
+        setError("We couldn't initialize the checkout process. Please try again.");
       } finally {
         setLoading(false);
       }
     };
     
     initCheckout();
-  }, [cartItems, clearCart, navigate, searchParams]);
+  }, [clearCart, navigate, searchParams]);
 
+  // Event handlers
   const handleBackToCart = () => {
     navigate('/cart');
   };
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+  
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!paymentDetails.cardName.trim()) 
+      errors.cardName = 'Name on card is required';
+    
+    if (!paymentDetails.cardNumber.trim()) 
+      errors.cardNumber = 'Card number is required';
+    else if (!/^\d{16}$/.test(paymentDetails.cardNumber.replace(/\s/g, ''))) 
+      errors.cardNumber = 'Card number must be 16 digits';
+    
+    if (!paymentDetails.expiryDate.trim()) 
+      errors.expiryDate = 'Expiry date is required';
+    else if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiryDate)) 
+      errors.expiryDate = 'Use format MM/YY';
+    
+    if (!paymentDetails.cvv.trim()) 
+      errors.cvv = 'CVV is required';
+    else if (!/^\d{3,4}$/.test(paymentDetails.cvv)) 
+      errors.cvv = 'CVV must be 3 or 4 digits';
+    
+    if (!paymentDetails.billingAddress.trim()) 
+      errors.billingAddress = 'Billing address is required';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  const handlePaymentSubmit = async () => {
+    if (!validateForm()) return;
+    
+    try {
+      setLoading(true);
+      
+      // Send payment details to mock API endpoint
+      await processPayment({
+        ...paymentDetails,
+        sessionId,
+        amount: total
+      });
+      
+      // Mark cart as cleared before navigating
+      cartCleared.current = true;
+      
+      // Navigate to success page
+      navigate('/checkout?payment_status=success');
+    } catch (err) {
+      console.error("Error processing payment:", err);
+      setError("There was an error processing your payment. Please try again.");
+      setLoading(false);
+    }
+  };
+  
+  const handleSkipToSuccess = () => {
+    cartCleared.current = true;
+    navigate('/checkout?payment_status=success');
+  };
 
-  // Render the confirmation step
-  const renderConfirmation = () => (
-    <Box sx={{ textAlign: 'center', py: 4 }}>
-      <Typography variant="h5" sx={{ color: 'success.main', mb: 2 }}>
-        Payment Successful!
-      </Typography>
-      <Typography variant="body1" paragraph>
-        Thank you for your order. Your payment has been processed successfully.
-      </Typography>
-      <Typography variant="body2" color="text.secondary" paragraph>
-        A confirmation email has been sent with your order details.
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => navigate('/menu')}
-        sx={{
-          mt: 2,
-          backgroundColor: '#8a2be2',
-          '&:hover': { backgroundColor: '#6a1fb1' }
-        }}
-      >
-        Continue Shopping
-      </Button>
-    </Box>
-  );
+  const handleContinueShopping = () => {
+    navigate('/menu');
+  };
+
+  // Render the current checkout step
+  const renderCheckoutStep = () => {
+    if (loading && activeStep !== 1) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    switch (activeStep) {
+      case 0:
+        return (
+          <CheckoutStepReview
+            cartItems={cartItems}
+            subtotal={subtotal}
+            tax={tax}
+            total={total}
+            onBackToCart={handleBackToCart}
+            onNextStep={() => setActiveStep(1)}
+            onSkipToSuccess={handleSkipToSuccess}
+          />
+        );
+      case 1:
+        return (
+          <CheckoutStepPayment
+            paymentDetails={paymentDetails}
+            formErrors={formErrors}
+            loading={loading}
+            onInputChange={handleInputChange}
+            onBackStep={() => setActiveStep(0)}
+            onSubmitPayment={handlePaymentSubmit}
+            onSkipToSuccess={handleSkipToSuccess}
+          />
+        );
+      case 2:
+        return (
+          <CheckoutStepConfirmation
+            onContinueShopping={handleContinueShopping}
+          />
+        );
+      default:
+        return <Typography>Unknown step</Typography>;
+    }
+  };
 
   return (
     <Layout>
@@ -170,127 +281,24 @@ const CheckoutPage = () => {
             border: '1px solid #eee'
           }}
         >
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-              <CircularProgress />
-            </Box>
-          ) : activeStep === 0 ? (
-            // Step 1: Order Review
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={7}>
-                <Typography variant="h6" gutterBottom>
-                  Review Your Order
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  {cartItems.map((item, index) => (
-                    <Box key={index} sx={{ mb: 2, py: 1 }}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={3} sm={2}>
-                          <Box 
-                            component="img" 
-                            src={item.imageUrl || '/placeholder-image.jpg'} 
-                            alt={item.name}
-                            sx={{ 
-                              width: '100%', 
-                              height: '60px',
-                              objectFit: 'cover',
-                              borderRadius: 1
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={9} sm={10}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body1">{item.name}</Typography>
-                            <Typography variant="body1">${item.basePrice.toFixed(2)}</Typography>
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Qty: {item.quantity || 1}
-                          </Typography>
-                          {item.customization && item.customization.length > 0 && (
-                            <Typography variant="body2" color="text.secondary">
-                              {item.customization.map(c => c.name).join(', ')}
-                            </Typography>
-                          )}
-                        </Grid>
-                      </Grid>
-                      {index < cartItems.length - 1 && <Divider sx={{ my: 1 }} />}
-                    </Box>
-                  ))}
-                </Box>
-                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-                  <Button 
-                    variant="outlined" 
-                    onClick={handleBackToCart}
-                    sx={{ 
-                      borderColor: '#8a2be2',
-                      color: '#8a2be2',
-                      '&:hover': {
-                        borderColor: '#6a1fb1',
-                        backgroundColor: 'rgba(138, 43, 226, 0.08)'
-                      }
-                    }}
-                  >
-                    Back to Cart
-                  </Button>
-                  <Button 
-                    variant="contained"
-                    onClick={() => setActiveStep(1)}
-                    sx={{
-                      backgroundColor: '#8a2be2',
-                      '&:hover': { backgroundColor: '#6a1fb1' }
-                    }}
-                  >
-                    Continue to Payment
-                  </Button>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={5}>
-                <Paper 
-                  elevation={0} 
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 2, 
-                    border: '1px solid #eee',
-                    backgroundColor: '#f9f9f9'
-                  }}
-                >
-                  <Typography variant="h6" gutterBottom>
-                    Order Summary
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', my: 2 }}>
-                    <Typography variant="body1">Subtotal</Typography>
-                    <Typography variant="body1">${subtotal.toFixed(2)}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', my: 2 }}>
-                    <Typography variant="body1">Tax (10%)</Typography>
-                    <Typography variant="body1">${tax.toFixed(2)}</Typography>
-                  </Box>
-                  <Divider sx={{ my: 2 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', my: 2 }}>
-                    <Typography variant="h6">Total</Typography>
-                    <Typography variant="h6">${total.toFixed(2)}</Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          ) : activeStep === 1 ? (
-            // Step 2: Payment
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Payment
+          {renderCheckoutStep()}
+          
+          {/* Add development notice banner at the bottom when not in confirmation step */}
+          {activeStep !== 2 && (
+            <Box 
+              sx={{ 
+                mt: 4, 
+                p: 1.5, 
+                bgcolor: 'info.main', 
+                color: 'white',
+                borderRadius: 1,
+                opacity: 0.9
+              }}
+            >
+              <Typography variant="body2" align="center">
+                <strong>Development Mode:</strong> This is a mock checkout flow. Use the orange "DEV" buttons to skip steps.
               </Typography>
-              {clientSecret && (
-                <EmbeddedCheckoutProvider
-                  stripe={stripePromise}
-                  options={{ clientSecret }}
-                >
-                  <EmbeddedCheckout />
-                </EmbeddedCheckoutProvider>
-              )}
             </Box>
-          ) : (
-            // Step 3: Confirmation
-            renderConfirmation()
           )}
         </Paper>
       </Container>
