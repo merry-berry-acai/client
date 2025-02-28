@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Layout from "../components/Layout";
 import { AuthContext } from '../contexts/AuthContext';
-import { getOrdersByUserId } from '../api/mockApi';
+import { getUserOrders } from '../api/apiHandler'; // Changed from mockApi to apiHandler
 import { getUserPhoto } from '../utils/localStorage';
 
 const Profile = () => {
@@ -28,7 +28,7 @@ const Profile = () => {
 
   useEffect(() => {
     setLoading(true);
-    getOrdersByUserId(currentUser.uid)
+    getUserOrders(currentUser.uid) // Changed from getOrdersByUserId to getUserOrders
       .then((data) => {
         setOrders(Array.isArray(data) ? data : []);  // Ensure we always set an array
         setLoading(false);
@@ -146,7 +146,7 @@ const Profile = () => {
                       onClick={() => {
                         setLoading(true);
                         setError(null);
-                        getOrdersByUserId(currentUser.uid)
+                        getUserOrders(currentUser.uid) // Changed from getOrdersByUserId to getUserOrders
                           .then((data) => {
                             setOrders(data || []);
                             setLoading(false);

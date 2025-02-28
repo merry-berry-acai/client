@@ -6,7 +6,8 @@ const API_CONFIG = {
   timeout: 8000,
   retries: 2,
   retryDelay: 1000,
-  logRequests: import.meta.env.VITE_NODE_ENV !== 'production'
+  logRequests: import.meta.env.VITE_NODE_ENV === 'development', // Always enable logging for debugging
+  logLevel: 'verbose' // 'normal' or 'verbose'
 };
 
 // For development: hardcoded admin UID
@@ -18,19 +19,57 @@ const apiHandler = axios.create({
   timeout: API_CONFIG.timeout,
 });
 
+// Add request interceptor for logging
+apiHandler.interceptors.request.use(
+  config => {
+    if (API_CONFIG.logRequests) {
+      console.log(`🚀 API Request: ${config.method.toUpperCase()} ${config.url}`);
+      
+      if (API_CONFIG.logLevel === 'verbose' && config.data) {
+        console.log('📦 Request Payload:', config.data);
+      }
+    }
+    return config;
+  },
+  error => {
+    console.error('❌ Request Interceptor Error:', error);
+    return Promise.reject(error);
+  }
+);
+
 // Add response interceptor for logging
 apiHandler.interceptors.response.use(
   response => {
     if (API_CONFIG.logRequests) {
       console.log(`✅ API Response: ${response.status} from ${response.config.url}`);
+      
+      if (API_CONFIG.logLevel === 'verbose') {
+        console.log('📄 Response Data:', response.data);
+      }
     }
     return response;
   },
   error => {
     if (error.response) {
       console.error(`❌ API Error ${error.response.status}: ${error.response.data?.message || error.message}`);
+      console.error('📍 Error occurred at:', error.config.url);
+      
+      if (API_CONFIG.logLevel === 'verbose') {
+        console.error('🔍 Error details:', error.response.data);
+        console.error('🔄 Original request:', { 
+          method: error.config.method, 
+          url: error.config.url,
+          data: error.config.data ? JSON.parse(error.config.data) : null
+        });
+      }
     } else if (error.request) {
       console.error(`❌ API Request failed: No response received`);
+      console.error('📍 Request details:', { 
+        method: error.config?.method, 
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        timeout: error.config?.timeout
+      });
     } else {
       console.error(`❌ API Request setup failed: ${error.message}`);
     }
@@ -92,14 +131,19 @@ async function makeRequest(options) {
     validateResponse = null
   } = options;
 
+  console.log(`🔵 makeRequest: ${method.toUpperCase()} ${endpoint} initiated`);
+  
   // Check cache for GET requests
   if (method === 'get' && cacheKey && state[cacheKey] && !bypassCache) {
+    console.log(`🟣 Using cached data for ${endpoint} (cache key: ${cacheKey})`);
     return state[cacheKey];
   }
 
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      console.log(`🔄 Attempt ${attempt + 1}/${retries + 1} for ${method.toUpperCase()} ${endpoint}`);
+      
       let response;
       
       switch (method.toLowerCase()) {
@@ -107,6 +151,7 @@ async function makeRequest(options) {
           response = await apiHandler.get(endpoint);
           break;
         case 'post':
+          console.log(`📤 POST payload for ${endpoint}:`, data);
           response = await apiHandler.post(endpoint, data);
           break;
         case 'put':
@@ -119,39 +164,46 @@ async function makeRequest(options) {
           throw new Error(`Unsupported method: ${method}`);
       }
 
+      console.log(`✅ ${method.toUpperCase()} ${endpoint} succeeded on attempt ${attempt + 1}`);
+      
       // Validate response if validator function is provided
-      if (validateResponse && !validateResponse(response.data)) {
+      if (validateResponse && !validateResponse(response.data.data)) {
+        console.warn(`⚠️ Response validation failed for ${endpoint}`);
         throw new Error("Response validation failed");
       }
       
       // Cache the result for GET requests
       if (method === 'get' && cacheKey) {
-        state[cacheKey] = response.data;
+        state[cacheKey] = response.data.data;
+        console.log(`💾 Cached response for ${endpoint} with key: ${cacheKey}`);
       }
       
       // Clear cache entries for mutations
       if (method !== 'get' && cacheToClear.length > 0) {
         clearCache(cacheToClear);
+        console.log(`🧹 Cleared cache keys: ${cacheToClear.join(', ')}`);
       }
       
-      return response.data;
+      return response.data.data;
     } 
     catch (error) {
       lastError = error;
+      console.error(`❌ Attempt ${attempt + 1} failed for ${method.toUpperCase()} ${endpoint}:`, error.message);
       
       // Don't retry if it's a client error (400-499)
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        console.error(`🛑 Not retrying ${method.toUpperCase()} ${endpoint} due to client error:`, error.response.status);
         throw error;
       }
       
       if (attempt < retries) {
-        console.warn(`${method.toUpperCase()} ${endpoint}: Attempt ${attempt + 1}/${retries + 1} failed, retrying in ${retryDelay}ms...`);
+        console.warn(`🕒 ${method.toUpperCase()} ${endpoint}: Attempt ${attempt + 1}/${retries + 1} failed, retrying in ${retryDelay}ms...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
   }
   
-  console.error(`Failed ${method.toUpperCase()} request to ${endpoint} after ${retries + 1} attempts`);
+  console.error(`❌ Failed ${method.toUpperCase()} request to ${endpoint} after ${retries + 1} attempts`);
   throw lastError || new Error(`Request to ${endpoint} failed`);
 }
 
@@ -396,8 +448,11 @@ async function getFeaturedItems(refresh = false) {
  * @throws {Error} - If validation fails or if all retry attempts fail
  */
 async function sendUserToDB(user, options = {}) {
+  console.log('🧪 sendUserToDB called with user data:', JSON.stringify(user, null, 2));
+  
   // Input validation
   if (!user) {
+    console.error('❌ sendUserToDB: User data is required');
     throw new Error("User data is required");
   }
   
@@ -406,17 +461,40 @@ async function sendUserToDB(user, options = {}) {
   const missingFields = requiredFields.filter(field => !user[field]);
   
   if (missingFields.length > 0) {
+    console.error(`❌ sendUserToDB: Missing required fields: ${missingFields.join(', ')}`);
     throw new Error(`Missing required user fields: ${missingFields.join(', ')}`);
   }
 
-  return makeRequest({
-    method: 'post',
-    endpoint: '/users/',
-    data: user,
-    retries: options.retries,
-    retryDelay: options.retryDelay,
-    validateResponse: (response) => response && response.id
-  });
+  console.log('✅ sendUserToDB: All required fields are present');
+  
+  // Check if the API endpoint is configured
+  if (!API_CONFIG.baseURL) {
+    console.error('❌ sendUserToDB: API base URL is not configured');
+    throw new Error("API base URL is not configured");
+  }
+  
+  console.log(`🔵 sendUserToDB: Sending user data to ${API_CONFIG.baseURL}/users/new`);
+  
+  try {
+    const result = await makeRequest({
+      method: 'post',
+      endpoint: '/users/register',
+      data: user,
+      retries: options.retries || API_CONFIG.retries,
+      retryDelay: options.retryDelay || API_CONFIG.retryDelay,
+      validateResponse: (response) => {
+        const valid = response && response.id;
+        console.log(`🔍 Response validation for sendUserToDB: ${valid ? 'Passed' : 'Failed'}`);
+        return valid;
+      }
+    });
+    
+    console.log('🎉 sendUserToDB: User successfully saved to database', result);
+    return result;
+  } catch (error) {
+    console.error('💥 sendUserToDB failed:', error);
+    throw error;
+  }
 }
 
 /**
@@ -446,6 +524,25 @@ async function checkIsAdmin(uid) {
   }
 }
 
+/**
+ * Get orders for a specific user
+ * @param {string} uid - User ID to fetch orders for
+ * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
+ */
+async function getUserOrders(uid, refresh = false) {
+  if (!uid) {
+    console.error('❌ getUserOrders: User ID is required');
+    throw new Error("User ID is required");
+  }
+
+  return makeRequest({
+    method: 'get',
+    endpoint: `/users/${uid}/orders`,
+    cacheKey: `userOrders-${uid}`,
+    bypassCache: refresh
+  });
+}
+
 // Export API functions
 export {
   getMenuItems,
@@ -455,6 +552,7 @@ export {
   getFeaturedItems,
   sendUserToDB,
   checkIsAdmin,
+  getUserOrders, // Add this new export
   
   createMenuItem,
   updateMenuItem,

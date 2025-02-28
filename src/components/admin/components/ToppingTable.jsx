@@ -19,7 +19,7 @@ const ToppingTable = ({ toppings, onEdit, onDelete }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {!toppings || toppings.length === 0 ? (
+          {!toppings?.length ? (
             <TableRow>
               <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                 <Typography variant="body1">No toppings found. Create your first topping!</Typography>
@@ -27,14 +27,14 @@ const ToppingTable = ({ toppings, onEdit, onDelete }) => {
             </TableRow>
           ) : (
             toppings.map((topping) => (
-              <TableRow key={topping._id} hover>
-                <TableCell>{topping.name}</TableCell>
+              <TableRow key={topping?._id} hover>
+                <TableCell>{topping?.name}</TableCell>
                 <TableCell sx={{ maxWidth: 300 }}>
-                  <Typography noWrap>{topping.description}</Typography>
+                  <Typography noWrap>{topping?.description}</Typography>
                 </TableCell>
-                <TableCell>${parseFloat(topping.price).toFixed(2)}</TableCell>
+                <TableCell>${parseFloat(topping?.price || 0).toFixed(2)}</TableCell>
                 <TableCell>
-                  {topping.isAvailable !== false ? (
+                  {topping?.isAvailable !== false ? (
                     <Box sx={{ 
                       bgcolor: 'rgba(46, 125, 50, 0.1)',
                       color: 'rgb(46, 125, 50)',

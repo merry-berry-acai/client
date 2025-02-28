@@ -19,10 +19,10 @@ const MenuPage = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  if (menuItems?.length === 0) {
+  if (!menuItems?.length) {
     return <Typography>Loading menu items...</Typography>;
   }
-  if (categories?.length === 0) {
+  if (!categories?.length) {
     return <Typography>Loading categories...</Typography>;
   }
 
@@ -35,30 +35,34 @@ const MenuPage = () => {
     setSelectedCategory(null);
   };
 
+  
+
   // Filter by category and search term
   const filteredItems = menuItems?.filter(item => {
     // Category filter
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+    const matchesCategory = selectedCategory ? item?.category === selectedCategory : true;
     
     // Search filter
     const matchesSearch = searchTerm 
-      ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      ? item?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) || 
+        item?.description?.toLowerCase().includes(searchTerm?.toLowerCase())
       : true;
     
     return matchesCategory && matchesSearch;
   });
 
   const sortItems = (items) => {
+    if (!items?.length) return [];
+    
     switch (sortBy) {
       case 'price-low':
-        return [...items].sort((a, b) => a.basePrice - b.basePrice);
+        return [...items].sort((a, b) => a?.basePrice - b?.basePrice);
       case 'price-high':
-        return [...items].sort((a, b) => b.basePrice - a.basePrice);
+        return [...items].sort((a, b) => b?.basePrice - a?.basePrice);
       case 'name-asc':
-        return [...items].sort((a, b) => a.name.localeCompare(b.name));
+        return [...items].sort((a, b) => a?.name?.localeCompare(b?.name || ''));
       case 'name-desc':
-        return [...items].sort((a, b) => b.name.localeCompare(a.name));
+        return [...items].sort((a, b) => b?.name?.localeCompare(a?.name || ''));
       default:
         return items;
     }

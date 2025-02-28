@@ -21,24 +21,24 @@ const CategoryList = ({ onSelectCategory, selectedCategory }) => {
       gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
       gap: 2 
     }}>
-      {categories.length === 0 ? (
+      {!categories?.length ? (
         <Typography>Loading...</Typography>
       ) : (
         categories.map(category => (
           <Card 
-            key={category._id} 
+            key={category?._id} 
             variant="outlined" 
             sx={{ 
               boxShadow: 3, 
               cursor: 'pointer',
-              backgroundColor: selectedCategory === category._id ? 'rgba(138, 43, 226, 0.1)' : 'inherit',
-              borderColor: selectedCategory === category._id ? '#8a2be2' : 'inherit',
-              borderWidth: selectedCategory === category._id ? 2 : 1
+              backgroundColor: selectedCategory === category?._id ? 'rgba(138, 43, 226, 0.1)' : 'inherit',
+              borderColor: selectedCategory === category?._id ? '#8a2be2' : 'inherit',
+              borderWidth: selectedCategory === category?._id ? 2 : 1
             }}
-            onClick={() => onSelectCategory(category._id)}
+            onClick={() => onSelectCategory(category?._id)}
           >
             <CardContent sx={{ pt: 2, pb: 2 }}>
-              <Typography variant="h6">{category.name}</Typography>
+              <Typography variant="h6">{category?.name}</Typography>
             </CardContent>
           </Card>
         ))
