@@ -19,6 +19,8 @@ import { CartProvider } from "./contexts/CartContext";
 import CategoryList from "./components/menu-browsing/CategoryList";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { MenuProvider } from "./contexts/MenuContext.jsx";
+import ProtectedRoute from "./components/routing/ProtectedRoute";
+import AdminRoute from "./components/routing/AdminRoute";
 
 function App() {
   return (
@@ -29,6 +31,7 @@ function App() {
           <Router>
             <ErrorBoundary>
               <Routes>
+                {/* Public routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/about" element={<AboutPage />} />
@@ -38,9 +41,18 @@ function App() {
                 <Route path="/auth/register" element={<AuthPage variant='signup'/>} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/categories/" element={<CategoryList />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="admin" element={<AdminPage />} />
-                <Route path="status" element={<StatusPage />} />
+                <Route path="/status" element={<StatusPage />} />
+                
+                {/* Protected routes - require authentication */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/profile" element={<ProfilePage />} />
+                </Route>
+                
+                {/* Admin routes - require authentication and admin permission */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/admin" element={<AdminPage />} />
+                </Route>
+                
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
             </ErrorBoundary>

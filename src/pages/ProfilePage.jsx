@@ -27,50 +27,24 @@ const Profile = () => {
   const [favorites] = useState(["Classic Açaí Bowl", "Tropical Smoothie", "Green Energy Smoothie", "Protein Power Bowl"]);
 
   useEffect(() => {
-    if(currentUser) {
-      setLoading(true);
-      getOrdersByUserId(currentUser.uid)
-        .then((data) => {
-          setOrders(Array.isArray(data) ? data : []);  // Ensure we always set an array
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching orders:", err);
-          setError("Failed to load order history");
-          setLoading(false);
-          setOrders([]);
-        });
-    } else {
-      setLoading(false);
-      setOrders([]);
-    }
+    setLoading(true);
+    getOrdersByUserId(currentUser.uid)
+      .then((data) => {
+        setOrders(Array.isArray(data) ? data : []);  // Ensure we always set an array
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
+        setError("Failed to load order history");
+        setLoading(false);
+        setOrders([]);
+      });
   }, [currentUser]);
 
   const photoData = getUserPhoto();
   const defaultPhoto = "/assets/default-user.png";
   const photoSrc = photoData || currentUser?.photoURL || defaultPhoto;
   const profileInitial = currentUser?.displayName ? currentUser?.displayName?.charAt(0) : 'U';
-
-  if (!currentUser) {
-    return (
-      <Layout>
-        <Container sx={{ py: 8, textAlign: "center" }}>
-          <Typography variant="h4" mb={2}>User not found</Typography>
-          <Typography variant="body1" mb={4}>Please log in to view your profile.</Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => navigate('/login')}
-            sx={{ 
-              bgcolor: 'purple',
-              '&:hover': { bgcolor: 'darkviolet' }
-            }}
-          >
-            Log In
-          </Button>
-        </Container>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

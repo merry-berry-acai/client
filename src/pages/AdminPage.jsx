@@ -1,71 +1,22 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
-  Container, Typography, Box, Tabs, Tab, Paper, Alert,
-  CircularProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider
+  Container, Typography, Box, Paper, Grid, List, 
+  ListItem, ListItemIcon, ListItemText
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import CategoryIcon from '@mui/icons-material/Category';
 import LocalPizzaIcon from '@mui/icons-material/LocalPizza';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import Layout from '../components/Layout';
-import { AuthContext } from '../contexts/AuthContext';
 import ItemManager from '../components/admin/ItemManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import ToppingManager from '../components/admin/ToppingManager';
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const { currentUser, isAdmin, loading } = useContext(AuthContext);
 
   const handleTabChange = (newValue) => {
     setActiveTab(newValue);
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <Container sx={{ py: 8, textAlign: 'center' }}>
-          <CircularProgress sx={{ color: 'purple' }} />
-          <Typography variant="h6" sx={{ mt: 2 }}>
-            Verifying permissions...
-          </Typography>
-        </Container>
-      </Layout>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <Layout>
-        <Container sx={{ py: 8 }}>
-          <Alert severity="error" sx={{ mb: 3 }}>
-            You must be logged in to access this page.
-          </Alert>
-          <Typography variant="body1">
-            Redirecting to home page...
-          </Typography>
-        </Container>
-      </Layout>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <Layout>
-        <Container sx={{ py: 8 }}>
-          <Alert severity="error" sx={{ mb: 3 }}>
-            You do not have admin permissions to access this page.
-          </Alert>
-          <Typography variant="body1">
-            User ID: {currentUser.uid}
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            Redirecting to home page...
-          </Typography>
-        </Container>
-      </Layout>
-    );
-  }
 
   // Create array of tab content components
   const tabContent = [
