@@ -167,14 +167,14 @@ async function makeRequest(options) {
       console.log(`✅ ${method.toUpperCase()} ${endpoint} succeeded on attempt ${attempt + 1}`);
       
       // Validate response if validator function is provided
-      if (validateResponse && !validateResponse(response.data)) {
+      if (validateResponse && !validateResponse(response.data.data)) {
         console.warn(`⚠️ Response validation failed for ${endpoint}`);
         throw new Error("Response validation failed");
       }
       
       // Cache the result for GET requests
       if (method === 'get' && cacheKey) {
-        state[cacheKey] = response.data;
+        state[cacheKey] = response.data.data;
         console.log(`💾 Cached response for ${endpoint} with key: ${cacheKey}`);
       }
       
@@ -184,7 +184,7 @@ async function makeRequest(options) {
         console.log(`🧹 Cleared cache keys: ${cacheToClear.join(', ')}`);
       }
       
-      return response.data;
+      return response.data.data;
     } 
     catch (error) {
       lastError = error;
@@ -483,6 +483,25 @@ async function checkIsAdmin(uid) {
   }
 }
 
+/**
+ * Get orders for a specific user
+ * @param {string} uid - User ID to fetch orders for
+ * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
+ */
+async function getUserOrders(uid, refresh = false) {
+  if (!uid) {
+    console.error('❌ getUserOrders: User ID is required');
+    throw new Error("User ID is required");
+  }
+
+  return makeRequest({
+    method: 'get',
+    endpoint: `/users/${uid}/orders`,
+    cacheKey: `userOrders-${uid}`,
+    bypassCache: refresh
+  });
+}
+
 // Export API functions
 export {
   getMenuItems,
@@ -492,6 +511,7 @@ export {
   getFeaturedItems,
   sendUserToDB,
   checkIsAdmin,
+  getUserOrders, // Add this new export
   
   createMenuItem,
   updateMenuItem,
