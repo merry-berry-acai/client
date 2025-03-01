@@ -77,43 +77,12 @@ apiHandler.interceptors.response.use(
   }
 );
 
-// Cache state for API responses
-const state = {
-  menuItems: null,
-  categories: null,
-  toppings: null,
-  featuredItems: null,
-};
-
 /**
- * Clear specific cache entries or all if no keys provided
- * @param {Array} keys - Keys to clear from cache
- */
-const clearCache = (keys = []) => {
-  if (keys.length === 0) {
-    // Clear all cache
-    Object.keys(state).forEach(key => {
-      state[key] = null;
-    });
-  } else {
-    // Clear only specified keys
-    keys.forEach(key => {
-      if (key in state) {
-        state[key] = null;
-      }
-    });
-  }
-};
-
-/**
- * Unified API request function with retry capability and caching
+ * Unified API request function with retry capability
  * @param {Object} options - Request options
  * @param {string} options.method - HTTP method (get, post, put, delete)
  * @param {string} options.endpoint - API endpoint
  * @param {Object} options.data - Request payload (for POST/PUT)
- * @param {string} options.cacheKey - Cache key to store/retrieve results
- * @param {boolean} options.bypassCache - Force bypass cache for reads
- * @param {Array} options.cacheToClear - Cache keys to clear after mutation
  * @param {number} options.retries - Number of retries (defaults to API_CONFIG.retries)
  * @param {number} options.retryDelay - Delay between retries (defaults to API_CONFIG.retryDelay)
  * @returns {Promise<any>} - API response data
@@ -123,21 +92,12 @@ async function makeRequest(options) {
     method = 'get',
     endpoint,
     data = null,
-    cacheKey = null,
-    bypassCache = false,
-    cacheToClear = [],
     retries = API_CONFIG.retries,
     retryDelay = API_CONFIG.retryDelay,
     validateResponse = null
   } = options;
 
   console.log(`🔵 makeRequest: ${method.toUpperCase()} ${endpoint} initiated`);
-  
-  // Check cache for GET requests
-  if (method === 'get' && cacheKey && state[cacheKey] && !bypassCache) {
-    console.log(`🟣 Using cached data for ${endpoint} (cache key: ${cacheKey})`);
-    return state[cacheKey];
-  }
 
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -172,18 +132,6 @@ async function makeRequest(options) {
         throw new Error("Response validation failed");
       }
       
-      // Cache the result for GET requests
-      if (method === 'get' && cacheKey) {
-        state[cacheKey] = response.data.data;
-        console.log(`💾 Cached response for ${endpoint} with key: ${cacheKey}`);
-      }
-      
-      // Clear cache entries for mutations
-      if (method !== 'get' && cacheToClear.length > 0) {
-        clearCache(cacheToClear);
-        console.log(`🧹 Cleared cache keys: ${cacheToClear.join(', ')}`);
-      }
-      
       return response.data.data;
     } 
     catch (error) {
@@ -211,14 +159,11 @@ async function makeRequest(options) {
 
 /**
  * Get all menu items
- * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
  */
-async function getMenuItems(refresh = false) {
+async function getMenuItems() {
   return makeRequest({
     method: 'get',
-    endpoint: '/items/',
-    cacheKey: 'menuItems',
-    bypassCache: refresh
+    endpoint: '/items/'
   });
 }
 
@@ -230,8 +175,7 @@ async function createMenuItem(itemData) {
   return makeRequest({
     method: 'post',
     endpoint: '/items/',
-    data: itemData,
-    cacheToClear: ['menuItems', 'featuredItems']
+    data: itemData
   });
 }
 
@@ -244,8 +188,7 @@ async function updateMenuItem(id, itemData) {
   return makeRequest({
     method: 'put',
     endpoint: `/items/${id}`,
-    data: itemData,
-    cacheToClear: ['menuItems', 'featuredItems']
+    data: itemData
   });
 }
 
@@ -256,8 +199,7 @@ async function updateMenuItem(id, itemData) {
 async function deleteMenuItem(id) {
   return makeRequest({
     method: 'delete',
-    endpoint: `/items/${id}`,
-    cacheToClear: ['menuItems', 'featuredItems']
+    endpoint: `/items/${id}`
   });
 }
 
@@ -266,15 +208,12 @@ async function deleteMenuItem(id) {
 /**
  * Get all categories or a specific category
  * @param {string} category - Optional specific category to fetch
- * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
  */
-async function getCategories(category = "", refresh = false) {
+async function getCategories(category = "") {
   const endpoint = category ? `/categories/${category}` : '/categories/';
   return makeRequest({
     method: 'get',
-    endpoint,
-    cacheKey: 'categories',
-    bypassCache: refresh
+    endpoint
   });
 }
 
@@ -286,8 +225,7 @@ async function createCategory(categoryData) {
   return makeRequest({
     method: 'post',
     endpoint: '/categories/',
-    data: categoryData,
-    cacheToClear: ['categories']
+    data: categoryData
   });
 }
 
@@ -300,8 +238,7 @@ async function updateCategory(id, categoryData) {
   return makeRequest({
     method: 'put',
     endpoint: `/categories/${id}`,
-    data: categoryData,
-    cacheToClear: ['categories', 'menuItems']
+    data: categoryData
   });
 }
 
@@ -312,8 +249,7 @@ async function updateCategory(id, categoryData) {
 async function deleteCategory(id) {
   return makeRequest({
     method: 'delete',
-    endpoint: `/categories/${id}`,
-    cacheToClear: ['categories', 'menuItems']
+    endpoint: `/categories/${id}`
   });
 }
 
@@ -321,14 +257,11 @@ async function deleteCategory(id) {
 
 /**
  * Get all toppings
- * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
  */
-async function getToppings(refresh = false) {
+async function getToppings() {
   return makeRequest({
     method: 'get',
-    endpoint: '/toppings/',
-    cacheKey: 'toppings',
-    bypassCache: refresh
+    endpoint: '/toppings/'
   });
 }
 
@@ -340,8 +273,7 @@ async function createTopping(toppingData) {
   return makeRequest({
     method: 'post',
     endpoint: '/toppings/',
-    data: toppingData,
-    cacheToClear: ['toppings']
+    data: toppingData
   });
 }
 
@@ -354,8 +286,7 @@ async function updateTopping(id, toppingData) {
   return makeRequest({
     method: 'put',
     endpoint: `/toppings/${id}`,
-    data: toppingData,
-    cacheToClear: ['toppings']
+    data: toppingData
   });
 }
 
@@ -366,8 +297,7 @@ async function updateTopping(id, toppingData) {
 async function deleteTopping(id) {
   return makeRequest({
     method: 'delete',
-    endpoint: `/toppings/${id}`,
-    cacheToClear: ['toppings']
+    endpoint: `/toppings/${id}`
   });
 }
 
@@ -445,14 +375,11 @@ async function getItemsInCategory(category) {
 
 /**
  * Get featured items
- * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
  */
-async function getFeaturedItems(refresh = false) {
+async function getFeaturedItems() {
   return makeRequest({
     method: 'get',
-    endpoint: '/items/home/featured',
-    cacheKey: 'featuredItems',
-    bypassCache: refresh
+    endpoint: '/items/home/featured'
   });
 }
 
@@ -555,9 +482,7 @@ async function getUserOrders(uid, refresh = false) {
 
   return makeRequest({
     method: 'get',
-    endpoint: `/users/${uid}/orders`,
-    cacheKey: `userOrders-${uid}`,
-    bypassCache: refresh
+    endpoint: `/users/${uid}/orders`
   });
 }
 
@@ -570,7 +495,7 @@ export {
   getFeaturedItems,
   sendUserToDB,
   checkIsAdmin,
-  getUserOrders, // Add this new export
+  getUserOrders,
   
   createMenuItem,
   updateMenuItem,
@@ -587,8 +512,6 @@ export {
   createCheckoutSession,
   processPayment,
   getCheckoutSession,
-  
-  clearCache,
   
   // Export for testing or extending
   makeRequest,
