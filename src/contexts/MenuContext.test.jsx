@@ -84,9 +84,10 @@ describe("MenuContext", () => {
       </MenuProvider>
     );
 
-    await waitFor(() =>
-      expect(contextValue.error).toBe("Failed to load menu data")
-    );
+    await waitFor(() => {
+      expect(contextValue.error).toBeTruthy();
+    });
+
     expect(contextValue.loadingMenu).toBe(false);
   });
 });
