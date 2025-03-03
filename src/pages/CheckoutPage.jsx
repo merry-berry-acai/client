@@ -33,13 +33,11 @@ const CheckoutPage = () => {
   // Add a ref to track if cart was cleared
   const cartCleared = useRef(false);
   
-  // Payment form state
   const [paymentDetails, setPaymentDetails] = useState({
     cardName: '',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
-    billingAddress: ''
   });
   const [formErrors, setFormErrors] = useState({});
   
@@ -125,7 +123,7 @@ const CheckoutPage = () => {
     };
     
     initCheckout();
-  }, [clearCart, navigate, searchParams]);
+  }, [clearCart, navigate, searchParams, cartItems]);
 
   // Event handlers
   const handleBackToCart = () => {
@@ -148,29 +146,37 @@ const CheckoutPage = () => {
     }
   };
   
+  // Updated validation function for new form fields
   const validateForm = () => {
     const errors = {};
     
+    // Card information validation
     if (!paymentDetails.cardName.trim()) 
       errors.cardName = 'Name on card is required';
     
     if (!paymentDetails.cardNumber.trim()) 
       errors.cardNumber = 'Card number is required';
-    else if (!/^\d{16}$/.test(paymentDetails.cardNumber.replace(/\s/g, ''))) 
-      errors.cardNumber = 'Card number must be 16 digits';
+    else if (!/^\d{13,19}$/.test(paymentDetails.cardNumber.replace(/\s/g, ''))) 
+      errors.cardNumber = 'Please enter a valid card number';
     
     if (!paymentDetails.expiryDate.trim()) 
       errors.expiryDate = 'Expiry date is required';
     else if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiryDate)) 
       errors.expiryDate = 'Use format MM/YY';
+    else {
+      // Validate expiry date isn't in the past
+      const [month, year] = paymentDetails.expiryDate.split('/');
+      const expiryDate = new Date(2000 + parseInt(year, 10), parseInt(month, 10) - 1);
+      const currentDate = new Date();
+      if (expiryDate < currentDate) {
+        errors.expiryDate = 'Card has expired';
+      }
+    }
     
     if (!paymentDetails.cvv.trim()) 
-      errors.cvv = 'CVV is required';
+      errors.cvv = 'Security code is required';
     else if (!/^\d{3,4}$/.test(paymentDetails.cvv)) 
-      errors.cvv = 'CVV must be 3 or 4 digits';
-    
-    if (!paymentDetails.billingAddress.trim()) 
-      errors.billingAddress = 'Billing address is required';
+      errors.cvv = 'Security code must be 3 or 4 digits';
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -182,9 +188,13 @@ const CheckoutPage = () => {
     try {
       setLoading(true);
       
-      // Send payment details to mock API endpoint
+      
+      // Send payment details to API endpoint
       await processPayment({
-        ...paymentDetails,
+        cardName: paymentDetails.cardName,
+        cardNumber: paymentDetails.cardNumber,
+        expiryDate: paymentDetails.expiryDate,
+        cvv: paymentDetails.cvv,
         sessionId,
         amount: total
       });
