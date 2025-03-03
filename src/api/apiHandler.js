@@ -1,17 +1,5 @@
 import axios from "axios";
-
-// Configuration
-const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 8000,
-  retries: 2,
-  retryDelay: 1000,
-  logRequests: import.meta.env.VITE_NODE_ENV === 'development', // Always enable logging for debugging
-  logLevel: 'verbose' // 'normal' or 'verbose'
-};
-
-// For development: hardcoded admin UID
-const ADMIN_UID = "EszW3BDsb4P6qLp9gJ03IRkCTKn2";
+import { API_CONFIG, AUTH_CONFIG, ENV_CONFIG } from "../config";
 
 // Create the API handler instance
 const apiHandler = axios.create({
