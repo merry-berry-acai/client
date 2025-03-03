@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useEffect } from 'react';
 import { toast } from "react-toastify";
+import { getCartFromStorage, saveCartToStorage } from '../utils/localStorage';
 
 export const CartContext = createContext();
 
@@ -7,13 +8,7 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
 	// Read initial cart from localStorage
 	const [cartItems, setCartItemsState] = React.useState(() => {
-		try {
-			const savedCart = localStorage.getItem('simple-cart');
-			return savedCart ? JSON.parse(savedCart) : [];
-		} catch (err) {
-			console.error("Failed to load cart from localStorage:", err);
-			return [];
-		}
+		return getCartFromStorage();
 	});
 
 	// Update localStorage whenever cart changes
@@ -22,7 +17,7 @@ export const CartProvider = ({ children }) => {
 			// If items is a function, call it with current state
 			const newItems = typeof items === 'function' ? items(cartItems) : items;
 			setCartItemsState(newItems);
-			localStorage.setItem('simple-cart', JSON.stringify(newItems));
+			saveCartToStorage(newItems);
 		} catch (err) {
 			console.error("Failed to save cart to localStorage:", err);
 			// Reset cart in case of error

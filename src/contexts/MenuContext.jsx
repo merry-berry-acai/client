@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import { getMenuItems, getCategories, getToppings, getFeaturedItems } from "../api/apiHandler";
+import { storeWithExpiry, getWithExpiry } from "../utils/localStorage";
 
 export const MenuContext = createContext();
 
@@ -26,53 +27,8 @@ export const MenuProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
 
-  // Helper function to save data to localStorage with timestamp
-  const saveToCache = useCallback((key, data) => {
-    try {
-      const cacheItem = {
-        data,
-        timestamp: new Date().getTime()
-      };
-      localStorage.setItem(
-        `${CACHE_CONFIG.storagePrefix}${key}`,
-        JSON.stringify(cacheItem)
-      );
-      console.log(`💾 Cached ${key} data to localStorage`);
-    } catch (err) {
-      console.error(`Failed to cache ${key} data:`, err);
-    }
-  }, []);
-
-  // Helper function to get data from localStorage with timestamp checking
-  const getFromCache = useCallback((key, forceRefresh = false) => {
-    try {
-      const cachedItem = localStorage.getItem(`${CACHE_CONFIG.storagePrefix}${key}`);
-      
-      if (!cachedItem) return null;
-      
-      const { data, timestamp } = JSON.parse(cachedItem);
-      const now = new Date().getTime();
-      const age = now - timestamp;
-      
-      // If force refresh is requested and data is older than threshold, return null
-      if (forceRefresh && age > CACHE_CONFIG.forceRefreshThreshold) {
-        console.log(`🔄 Force refreshing ${key}, cache too old (${Math.round(age/1000/60)} minutes)`);
-        return null;
-      }
-      
-      // If data is expired, return null
-      if (age > CACHE_CONFIG.defaultExpiry) {
-        console.log(`⏰ Cache expired for ${key} (${Math.round(age/1000/60)} minutes old)`);
-        return null;
-      }
-      
-      console.log(`📋 Using cached ${key} data (${Math.round(age/1000/60)} minutes old)`);
-      return data;
-    } catch (err) {
-      console.error(`Failed to retrieve ${key} from cache:`, err);
-      return null;
-    }
-  }, []);
+  // Helper function to get cache key with prefix
+  const getCacheKey = (key) => `${CACHE_CONFIG.storagePrefix}${key}`;
 
   // Function to fetch data from API and update both state and cache
   const fetchAndCacheData = useCallback(async (forceRefresh = false) => {
@@ -81,10 +37,10 @@ export const MenuProvider = ({ children }) => {
       
       // Track which items need to be loaded
       let needsLoading = {
-        menuItems: !getFromCache(CACHE_CONFIG.keys.menuItems, forceRefresh),
-        categories: !getFromCache(CACHE_CONFIG.keys.categories, forceRefresh),
-        toppings: !getFromCache(CACHE_CONFIG.keys.toppings, forceRefresh),
-        featuredItems: !getFromCache(CACHE_CONFIG.keys.featuredItems, forceRefresh)
+        menuItems: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
+        categories: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
+        toppings: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
+        featuredItems: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems), forceRefresh, CACHE_CONFIG.forceRefreshThreshold)
       };
       
       // Set loading state only if we need to fetch any data
@@ -95,7 +51,7 @@ export const MenuProvider = ({ children }) => {
       
       // Load cached data first (even if we're going to refresh)
       Object.keys(needsLoading).forEach(key => {
-        const cached = getFromCache(CACHE_CONFIG.keys[key], false);
+        const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys[key]), false);
         if (cached) {
           switch(key) {
             case 'menuItems': setMenuItems(cached); break;
@@ -113,7 +69,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getMenuItems().then(data => {
             setMenuItems(data);
-            saveToCache(CACHE_CONFIG.keys.menuItems, data);
+            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems), data, CACHE_CONFIG.defaultExpiry);
           })
         );
       }
@@ -122,7 +78,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getCategories().then(data => {
             setCategories(data);
-            saveToCache(CACHE_CONFIG.keys.categories, data);
+            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories), data, CACHE_CONFIG.defaultExpiry);
           })
         );
       }
@@ -131,7 +87,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getToppings().then(data => {
             setToppings(data);
-            saveToCache(CACHE_CONFIG.keys.toppings, data);
+            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings), data, CACHE_CONFIG.defaultExpiry);
           })
         );
       }
@@ -140,7 +96,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getFeaturedItems().then(data => {
             setFeaturedItems(data);
-            saveToCache(CACHE_CONFIG.keys.featuredItems, data);
+            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems), data, CACHE_CONFIG.defaultExpiry);
           })
         );
       }
@@ -156,7 +112,7 @@ export const MenuProvider = ({ children }) => {
     } finally {
       setLoadingMenu(false);
     }
-  }, [getFromCache, saveToCache]);
+  }, []);
 
   // Function to refresh menu data (can be called manually)
   const refreshMenuData = useCallback(() => {
@@ -175,7 +131,6 @@ export const MenuProvider = ({ children }) => {
       console.log("⏰ Background refresh interval triggered");
       fetchAndCacheData(false);
     }, CACHE_CONFIG.refreshInterval);
-
     return () => clearInterval(intervalId);
   }, [fetchAndCacheData]);
 
