@@ -41,13 +41,14 @@ function App() {
                 <Route path="/auth/login" element={<AuthPage variant='signin' />} />
                 <Route path="/auth/register" element={<AuthPage variant='signup'/>} />
                 <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
+                
                 <Route path="/categories" element={<CategoryList />} />
                 <Route path="/status" element={<StatusPage />} />
                 
                 {/* Protected routes - require authentication */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
                 </Route>
                 
                 {/* Admin routes - require authentication and admin permission */}
