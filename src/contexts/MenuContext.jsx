@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import { getMenuItems, getCategories, getToppings, getFeaturedItems } from "../api/apiHandler";
-import { storeWithExpiry, getWithExpiry } from "../utils/localStorage";
+import { storeWithExpiry, getWithExpiry, removeItem } from "../utils/localStorage";
 
 export const MenuContext = createContext();
 
@@ -35,12 +35,20 @@ export const MenuProvider = ({ children }) => {
     try {
       setError(null);
       
+      // If force refresh is true, remove all cache entries first
+      if (forceRefresh) {
+        console.log("🔄 Force refreshing cache - clearing existing cache entries");
+        Object.values(CACHE_CONFIG.keys).forEach(key => {
+          removeItem(getCacheKey(key));
+        });
+      }
+      
       // Track which items need to be loaded
       let needsLoading = {
-        menuItems: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
-        categories: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
-        toppings: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings), forceRefresh, CACHE_CONFIG.forceRefreshThreshold),
-        featuredItems: !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems), forceRefresh, CACHE_CONFIG.forceRefreshThreshold)
+        menuItems: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems)),
+        categories: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories)),
+        toppings: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings)),
+        featuredItems: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems))
       };
       
       // Set loading state only if we need to fetch any data
@@ -49,18 +57,20 @@ export const MenuProvider = ({ children }) => {
         setLoadingMenu(true);
       }
       
-      // Load cached data first (even if we're going to refresh)
-      Object.keys(needsLoading).forEach(key => {
-        const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys[key]), false);
-        if (cached) {
-          switch(key) {
-            case 'menuItems': setMenuItems(cached); break;
-            case 'categories': setCategories(cached); break;
-            case 'toppings': setToppings(cached); break;
-            case 'featuredItems': setFeaturedItems(cached); break;
+      // Load cached data first (only if not force refreshing)
+      if (!forceRefresh) {
+        Object.keys(needsLoading).forEach(key => {
+          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys[key]));
+          if (cached) {
+            switch(key) {
+              case 'menuItems': setMenuItems(cached); break;
+              case 'categories': setCategories(cached); break;
+              case 'toppings': setToppings(cached); break;
+              case 'featuredItems': setFeaturedItems(cached); break;
+            }
           }
-        }
-      });
+        });
+      }
       
       // Fetch only what needs refreshing
       const promises = [];
