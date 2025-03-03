@@ -7,6 +7,7 @@ const apiHandler = axios.create({
   timeout: API_CONFIG.timeout,
 });
 
+const ADMIN_UID = AUTH_CONFIG.adminUID;
 // Add request interceptor for logging
 apiHandler.interceptors.request.use(
   config => {
