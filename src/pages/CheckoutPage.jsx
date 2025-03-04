@@ -60,39 +60,6 @@ const CheckoutPage = () => {
 
   const { subtotal, tax, total } = calculateTotals();
 
-  const initCheckout = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Format items for the checkout session
-      const checkoutItems = cartItems.map(item => ({
-        id: item._id,
-        name: item.name,
-        price: item.basePrice,
-        quantity: item.quantity || 1,
-        customization: item.customization || [],
-        imageUrl: item.imageUrl
-      }));
-
-      // Create checkout session
-      const checkoutData = {
-        items: checkoutItems,
-        successUrl: `${window.location.origin}/checkout?payment_status=success`,
-        cancelUrl: `${window.location.origin}/checkout?payment_status=cancelled`
-      };
-
-      const response = await createCheckoutSession(checkoutData);
-      setSessionId(response.sessionId);
-      setActiveStep(0); // Start at review step
-    } catch (err) {
-      console.error("Error creating checkout session:", err);
-      setError("We couldn't initialize the checkout process. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     // Check for return status from payment
     const paymentStatus = searchParams.get('payment_status');
@@ -121,7 +88,9 @@ const CheckoutPage = () => {
       return;
     }
     
-    initCheckout();
+    // Just set loading to false as we start at review step
+    setLoading(false);
+    setActiveStep(0);
   }, [clearCart, navigate, searchParams, cartItems]);
 
   // Event handlers
