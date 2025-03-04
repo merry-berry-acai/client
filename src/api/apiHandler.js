@@ -121,7 +121,7 @@ async function makeRequest(options) {
         throw new Error("Response validation failed");
       }
       
-      return response.data.data;
+      return response.data.data || response.data;
     } 
     catch (error) {
       lastError = error;
@@ -459,21 +459,24 @@ async function checkIsAdmin(uid) {
 }
 
 /**
- * Get orders for a specific user
+ * Get user orders with pagination support
+ * 
  * @param {string} uid - User ID to fetch orders for
- * @param {boolean} refresh - Whether to bypass cache and fetch fresh data
+ * @returns {Promise<Array>} - Array of order objects
  */
-async function getUserOrders(uid, refresh = false) {
-  if (!uid) {
-    console.error('❌ getUserOrders: User ID is required');
-    throw new Error("User ID is required");
-  }
+export const getUserOrders = async (uid) => {
+  try {
+    const response = await makeRequest({
+      method: 'get',
+      endpoint: `/users/${uid}`,
+    });
 
-  return makeRequest({
-    method: 'get',
-    endpoint: `/users/${uid}/orders`
-  });
-}
+    return response.orderHistory || [];
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    throw error;
+  }
+};
 
 // Export API functions
 export {
@@ -484,7 +487,6 @@ export {
   getFeaturedItems,
   sendUserToDB,
   checkIsAdmin,
-  getUserOrders,
   
   createMenuItem,
   updateMenuItem,
