@@ -12,7 +12,8 @@ import {
   StepLabel
 } from '@mui/material';
 import { CartContext } from '../contexts/CartContext';
-import { createCheckoutSession, processPayment } from '../api/apiHandler';
+import { AuthContext } from '../contexts/AuthContext';
+import { makeRequest } from '../api/apiHandler';
 import Layout from '../components/Layout';
 import { 
   CheckoutStepReview, 
@@ -22,6 +23,7 @@ import {
 
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
+  const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -30,16 +32,13 @@ const CheckoutPage = () => {
   const [error, setError] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   
+  // Add state for Stripe integration
+  const [clientSecret, setClientSecret] = useState('');
+  const [orderId, setOrderId] = useState('');
+  const [paymentIntent, setPaymentIntent] = useState('');
+  
   // Add a ref to track if cart was cleared
   const cartCleared = useRef(false);
-  
-  const [paymentDetails, setPaymentDetails] = useState({
-    cardName: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-  });
-  const [formErrors, setFormErrors] = useState({});
   
   const steps = ['Review order', 'Payment', 'Confirmation'];
   
@@ -60,6 +59,39 @@ const CheckoutPage = () => {
   };
 
   const { subtotal, tax, total } = calculateTotals();
+
+  const initCheckout = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Format items for the checkout session
+      const checkoutItems = cartItems.map(item => ({
+        id: item._id,
+        name: item.name,
+        price: item.basePrice,
+        quantity: item.quantity || 1,
+        customization: item.customization || [],
+        imageUrl: item.imageUrl
+      }));
+
+      // Create checkout session
+      const checkoutData = {
+        items: checkoutItems,
+        successUrl: `${window.location.origin}/checkout?payment_status=success`,
+        cancelUrl: `${window.location.origin}/checkout?payment_status=cancelled`
+      };
+
+      const response = await createCheckoutSession(checkoutData);
+      setSessionId(response.sessionId);
+      setActiveStep(0); // Start at review step
+    } catch (err) {
+      console.error("Error creating checkout session:", err);
+      setError("We couldn't initialize the checkout process. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Check for return status from payment
@@ -89,39 +121,6 @@ const CheckoutPage = () => {
       return;
     }
     
-    const initCheckout = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Format items for the checkout session
-        const checkoutItems = cartItems.map(item => ({
-          id: item._id,
-          name: item.name,
-          price: item.basePrice,
-          quantity: item.quantity || 1,
-          customization: item.customization || [],
-          imageUrl: item.imageUrl
-        }));
-        
-        // Create checkout session
-        const checkoutData = {
-          items: checkoutItems,
-          successUrl: `${window.location.origin}/checkout?payment_status=success`,
-          cancelUrl: `${window.location.origin}/checkout?payment_status=cancelled`
-        };
-        
-        const response = await createCheckoutSession(checkoutData);
-        setSessionId(response.sessionId);
-        setActiveStep(0); // Start at review step
-      } catch (err) {
-        console.error("Error creating checkout session:", err);
-        setError("We couldn't initialize the checkout process. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     initCheckout();
   }, [clearCart, navigate, searchParams, cartItems]);
 
@@ -130,85 +129,90 @@ const CheckoutPage = () => {
     navigate('/cart');
   };
   
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPaymentDetails(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-  
-  // Updated validation function for new form fields
-  const validateForm = () => {
-    const errors = {};
-    
-    // Card information validation
-    if (!paymentDetails.cardName.trim()) 
-      errors.cardName = 'Name on card is required';
-    
-    if (!paymentDetails.cardNumber.trim()) 
-      errors.cardNumber = 'Card number is required';
-    else if (!/^\d{13,19}$/.test(paymentDetails.cardNumber.replace(/\s/g, ''))) 
-      errors.cardNumber = 'Please enter a valid card number';
-    
-    if (!paymentDetails.expiryDate.trim()) 
-      errors.expiryDate = 'Expiry date is required';
-    else if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiryDate)) 
-      errors.expiryDate = 'Use format MM/YY';
-    else {
-      // Validate expiry date isn't in the past
-      const [month, year] = paymentDetails.expiryDate.split('/');
-      const expiryDate = new Date(2000 + parseInt(year, 10), parseInt(month, 10) - 1);
-      const currentDate = new Date();
-      if (expiryDate < currentDate) {
-        errors.expiryDate = 'Card has expired';
-      }
-    }
-    
-    if (!paymentDetails.cvv.trim()) 
-      errors.cvv = 'Security code is required';
-    else if (!/^\d{3,4}$/.test(paymentDetails.cvv)) 
-      errors.cvv = 'Security code must be 3 or 4 digits';
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-  
-  const handlePaymentSubmit = async () => {
-    if (!validateForm()) return;
-    
+   const handleSubmitOrder = async (orderData) => {
     try {
       setLoading(true);
+      setError(null);
       
-      
-      // Send payment details to API endpoint
-      await processPayment({
-        cardName: paymentDetails.cardName,
-        cardNumber: paymentDetails.cardNumber,
-        expiryDate: paymentDetails.expiryDate,
-        cvv: paymentDetails.cvv,
-        sessionId,
-        amount: total
+      // Submit order to backend
+      const orderResponse = await makeRequest({
+        method: 'post',
+        endpoint: '/orders/new',
+        data: orderData
       });
       
-      // Mark cart as cleared before navigating
-      cartCleared.current = true;
+      // Extract order ID
+      const orderId = orderResponse?.order?._id;
+      setOrderId(orderId);
+  
+      // Create payment intent
+      const paymentIntentResponse = await makeRequest({
+        method: 'post',
+        endpoint: '/checkout/payment',
+        data: {
+          amount: Math.round(total * 100), // Convert to cents
+          currency: 'AUD',
+          orderId: orderId
+        }
+      });
       
-      // Navigate to success page
-      navigate('/checkout?payment_status=success');
+      // Access clientSecret
+      const clientSecret = paymentIntentResponse?.clientSecret;
+      const paymentIntent = paymentIntentResponse?.paymentIntentId;
+
+      if (paymentIntent) {
+        setPaymentIntent(paymentIntent);
+      } else {
+        throw new Error("Missing payment intent from response");
+      }
+      
+      if (clientSecret) {
+        setClientSecret(clientSecret);
+        setActiveStep(1);
+      } else {
+        throw new Error("Missing client secret from payment intent");
+      }
+
+
+      
     } catch (err) {
-      console.error("Error processing payment:", err);
-      setError("There was an error processing your payment. Please try again.");
+      console.error("Error processing order:", err);
+      setError("There was an error processing your order. Please try again.");
+    } finally {
       setLoading(false);
     }
+  };
+  
+  const handlePaymentSuccess = (paymentData) => {
+    // Success, navigate to confirmation
+    console.log('Payment successful:', paymentData);
+    cartCleared.current = true;
+    
+    // First set the active step to confirmation (step 2)
+    setActiveStep(2);
+    
+    // Then record the payment
+    makeRequest({
+      method: 'post',
+      endpoint: '/checkout/payment/store',
+      data: {
+        paymentIntent: paymentData.paymentIntent,
+        orderId: paymentData.orderId
+      }
+    }).then(() => {
+      console.log('Payment successfully recorded');
+      // Update URL after recording payment
+      navigate('/checkout?payment_status=success', { replace: true });
+    }).catch(err => {
+      console.error("Error recording payment:", err);
+      // Still update URL even if recording fails
+      navigate('/checkout?payment_status=success', { replace: true });
+    });
+  };
+  
+  const handlePaymentError = (errorMessage) => {
+    setError(`Payment error: ${errorMessage}`);
+    setLoading(false);
   };
   
   const handleSkipToSuccess = () => {
@@ -239,19 +243,19 @@ const CheckoutPage = () => {
             tax={tax}
             total={total}
             onBackToCart={handleBackToCart}
-            onNextStep={() => setActiveStep(1)}
+            onNextStep={(orderData) => handleSubmitOrder(orderData)}
             onSkipToSuccess={handleSkipToSuccess}
           />
         );
       case 1:
         return (
           <CheckoutStepPayment
-            paymentDetails={paymentDetails}
-            formErrors={formErrors}
+            clientSecret={clientSecret}
+            orderId={orderId}
             loading={loading}
-            onInputChange={handleInputChange}
             onBackStep={() => setActiveStep(0)}
-            onSubmitPayment={handlePaymentSubmit}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
             onSkipToSuccess={handleSkipToSuccess}
           />
         );
@@ -259,6 +263,7 @@ const CheckoutPage = () => {
         return (
           <CheckoutStepConfirmation
             onContinueShopping={handleContinueShopping}
+            orderId={orderId}
           />
         );
       default:
