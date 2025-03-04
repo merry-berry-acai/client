@@ -10,10 +10,8 @@ import {
   signOut,
   updateProfile
 } from "firebase/auth";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { sendUserToDB } from "../api/apiHandler";
 import { FIREBASE_CONFIG } from "../config";
+import { sendUserToDB } from "../api/apiHandler";
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
@@ -32,6 +30,19 @@ const log = (message, data) => {
       console.log(`🔥 Firebase: ${message}`);
     }
   }
+};
+
+// Global variable to store the snackbar function
+// This avoids needing to pass the hook through the entire application
+let showSnackbar = {
+  success: (msg) => console.log('Toast success:', msg),
+  error: (msg) => console.error('Toast error:', msg),
+  info: (msg) => console.info('Toast info:', msg)
+};
+
+// Function to set snackbar functions from the context
+export const setSnackbarFunctions = (snackbarFns) => {
+  showSnackbar = snackbarFns;
 };
 
 //Example of using onAuthStateChanged to monitor the authentication state:
@@ -80,7 +91,7 @@ const handleGoogleSignIn = async (navigate) => {
       // Continue with authentication even if database save fails
     }
     
-    toast.success("Login Successful!");
+    showSnackbar.success("Login Successful!");
     log('Redirecting to profile page');
     setTimeout(() => {
       navigate("/profile");
@@ -90,7 +101,7 @@ const handleGoogleSignIn = async (navigate) => {
   } catch (error) {
     console.error("❌ Google Sign-In Error:", error);
     log('Google sign in failed with error:', error.message);
-    toast.error("Google Sign-In failed. Please try again.");
+    showSnackbar.error("Google Sign-In failed. Please try again.");
   }
 };
 
@@ -136,7 +147,7 @@ const signUp = async (email, password, navigate, displayName, userData = {}) => 
       // Continue with authentication even if database save fails
     }
     
-    toast.success("Sign Up Successful!");
+    showSnackbar.success("Sign Up Successful!");
     log('Redirecting to profile page');
     setTimeout(() => {
       navigate("/profile");
@@ -151,9 +162,9 @@ const signUp = async (email, password, navigate, displayName, userData = {}) => 
     
     // Show appropriate error message
     if (errorCode === 'auth/email-already-in-use') {
-      toast.error("Email already in use. Please use a different email or sign in.");
+      showSnackbar.error("Email already in use. Please use a different email or sign in.");
     } else {
-      toast.error("Sign-up failed. Please try again.");
+      showSnackbar.error("Sign-up failed. Please try again.");
     }
     
     throw error; // Rethrow the error for the caller to handle
@@ -166,7 +177,7 @@ const signIn = async (email, password, navigate) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    toast.success("Sign In Successful!");
+    showSnackbar.success("Sign In Successful!");
     setTimeout(() => {
       navigate("/profile");
     }, 1000);
@@ -179,9 +190,9 @@ const signIn = async (email, password, navigate) => {
     
     // Show appropriate error message
     if (errorCode === 'auth/wrong-password' || errorCode === 'auth/user-not-found') {
-      toast.error("Invalid email or password.");
+      showSnackbar.error("Invalid email or password.");
     } else {
-      toast.error("Sign-in failed. Please try again.");
+      showSnackbar.error("Sign-in failed. Please try again.");
     }
     
     throw error; // Rethrow the error for the caller to handle
@@ -192,7 +203,7 @@ const signIn = async (email, password, navigate) => {
 const signOutUser = () => {
   signOut(auth)
     .then(() => {
-      toast.success("Sign Out Successful!");
+      showSnackbar.success("Sign Out Successful!");
       console.log("User signed out");
     })
     .catch((error) => {
