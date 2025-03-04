@@ -212,4 +212,25 @@ const signOutUser = () => {
     });
 };
 
-export {auth, signIn, signUp, signOutUser, handleGoogleSignIn};
+// Add a function to get the current user's token
+const getCurrentUserToken = async () => {
+  const user = auth.currentUser;
+  if (!user) return null;
+  
+  try {
+    return await user.getIdToken(true);
+  } catch (error) {
+    console.error("Error getting auth token:", error);
+    return null;
+  }
+};
+
+// Now export this function
+export {
+  auth, 
+  signIn, 
+  signUp, 
+  signOutUser, 
+  handleGoogleSignIn,
+  getCurrentUserToken
+};
