@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useEffect } from 'react';
-import { toast } from "react-toastify";
-import { getCartFromStorage, saveCartToStorage } from '../utils/localStorage';
+import React, { createContext, useCallback, useEffect, useContext } from 'react';
+import { SnackbarContext } from './SnackbarContext';
+import { getCartFromStorage, saveCartToStorage, removeItem } from '../utils/localStorage';
 
 export const CartContext = createContext();
 
@@ -11,6 +11,8 @@ export const CartProvider = ({ children }) => {
 		return getCartFromStorage();
 	});
 
+	const { showSuccess, showError, showInfo } = useContext(SnackbarContext);
+	
 	// Update localStorage whenever cart changes
 	const setCartItems = useCallback((items) => {
 		try {
@@ -22,13 +24,13 @@ export const CartProvider = ({ children }) => {
 			console.error("Failed to save cart to localStorage:", err);
 			// Reset cart in case of error
 			setCartItemsState([]);
-			localStorage.removeItem('simple-cart');
+			removeItem('simple-cart');
 		}
 	}, [cartItems]);
-
+	
 	// Generate a simple unique ID for cart items
 	const generateCartItemId = () => `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
+	
 	// Add item to cart with a unique cartItemId
 	const addToCart = useCallback((item, customization = null, quantity = 1) => {
 		setCartItems(prev => {
@@ -74,7 +76,7 @@ export const CartProvider = ({ children }) => {
 					...updated[existingItemIndex],
 					quantity: (updated[existingItemIndex].quantity || 1) + quantity
 				};
-				toast.success("Item quantity updated in cart!");
+				showSuccess("Item quantity updated in cart!");
 				return updated;
 			}
 			
@@ -85,11 +87,11 @@ export const CartProvider = ({ children }) => {
 				quantity,
 				cartItemId: generateCartItemId()
 			};
-			toast.success("Item added to cart!");
+			showSuccess("Item added to cart!");
 			return [...prev, newItem];
 		});
-	}, [setCartItems]);
-
+	}, [setCartItems, showSuccess]);
+	
 	// Update cart item (simpler approach - always find by cartItemId)
 	const onUpdateCartItem = useCallback((updatedItem) => {
 		if (!updatedItem.cartItemId) {
@@ -106,11 +108,11 @@ export const CartProvider = ({ children }) => {
 				...updatedItem,
 				quantity: updatedItem.quantity || 1
 			};
-			toast.success("Cart item updated!");
+			showSuccess("Cart item updated!");
 			return updated;
 		});
-	}, [setCartItems]);
-
+	}, [setCartItems, showSuccess]);
+	
 	// Remove from cart (simplified to use cartItemId only)
 	const removeFromCart = useCallback((itemId, customization = null, cartItemId = null) => {
 		setCartItems(prev => {
@@ -118,7 +120,7 @@ export const CartProvider = ({ children }) => {
 			if (cartItemId) {
 				const filtered = prev.filter(item => item.cartItemId !== cartItemId);
 				if (filtered.length < prev.length) {
-					toast.success("Item removed from cart!");
+					showSuccess("Item removed from cart!");
 				}
 				return filtered;
 			}
@@ -126,21 +128,21 @@ export const CartProvider = ({ children }) => {
 			// Otherwise just use the item ID
 			const filtered = prev.filter(item => item._id !== itemId);
 			if (filtered.length < prev.length) {
-				toast.success("Item removed from cart!");
+				showSuccess("Item removed from cart!");
 			}
 			return filtered;
 		});
-	}, [setCartItems]);
-
+	}, [setCartItems, showSuccess]);
+	
 	// Clear cart completely
 	const clearCart = useCallback(() => {
 		setCartItemsState([]);
-		localStorage.removeItem('simple-cart');
+		removeItem('simple-cart');
 		// Also try to clear the old cart format
-		localStorage.removeItem('cart-items');
-		toast.info("Cart has been cleared");
-	}, []);
-
+		removeItem('cart-items');
+		showInfo("Cart has been cleared");
+	}, [showInfo]);
+	
 	// Final validation on component mount
 	useEffect(() => {
 		// Reset cart if it's not an array
@@ -148,8 +150,8 @@ export const CartProvider = ({ children }) => {
 			console.error("Cart is not an array, resetting");
 			clearCart();
 		}
-	}, [clearCart]);
-
+	}, [clearCart, cartItems]);
+	
 	return (
 		<CartContext.Provider value={{ 
 			cartItems, 
