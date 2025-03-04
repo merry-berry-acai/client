@@ -23,7 +23,7 @@ import {
 
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, authToken } = useContext(AuthContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -103,18 +103,19 @@ const CheckoutPage = () => {
       setLoading(true);
       setError(null);
       
-      // Submit order to backend
+      // Submit order to backend with auth token in header
       const orderResponse = await makeRequest({
         method: 'post',
         endpoint: '/orders/new',
-        data: orderData
+        data: orderData,
+        authToken: authToken // Use the authToken from AuthContext
       });
       
       // Extract order ID
       const orderId = orderResponse?.order?._id;
       setOrderId(orderId);
   
-      // Create payment intent
+      // Create payment intent with auth token in header
       const paymentIntentResponse = await makeRequest({
         method: 'post',
         endpoint: '/checkout/payment',
@@ -122,7 +123,8 @@ const CheckoutPage = () => {
           amount: Math.round(total * 100), // Convert to cents
           currency: 'AUD',
           orderId: orderId
-        }
+        },
+        authToken: authToken // Use the authToken from AuthContext
       });
       
       // Access clientSecret
@@ -160,14 +162,15 @@ const CheckoutPage = () => {
     // First set the active step to confirmation (step 2)
     setActiveStep(2);
     
-    // Then record the payment
+    // Then record the payment with auth token in header
     makeRequest({
       method: 'post',
       endpoint: '/checkout/payment/store',
       data: {
         paymentIntent: paymentData.paymentIntent,
         orderId: paymentData.orderId
-      }
+      },
+      authToken: authToken // Use the authToken from AuthContext
     }).then(() => {
       console.log('Payment successfully recorded');
       // Update URL after recording payment
