@@ -74,6 +74,7 @@ apiHandler.interceptors.response.use(
  * @param {Object} options.data - Request payload (for POST/PUT)
  * @param {number} options.retries - Number of retries (defaults to API_CONFIG.retries)
  * @param {number} options.retryDelay - Delay between retries (defaults to API_CONFIG.retryDelay)
+ * @param {string} options.authToken - Auth token for protected endpoints
  * @returns {Promise<any>} - API response data
  */
 async function makeRequest(options) {
@@ -83,36 +84,42 @@ async function makeRequest(options) {
     data = null,
     retries = API_CONFIG.retries,
     retryDelay = API_CONFIG.retryDelay,
-    validateResponse = null
+    validateResponse = null,
+    authToken = null
   } = options;
-
+  
   console.log(`🔵 makeRequest: ${method.toUpperCase()} ${endpoint} initiated`);
-
   let lastError;
+  
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       console.log(`🔄 Attempt ${attempt + 1}/${retries + 1} for ${method.toUpperCase()} ${endpoint}`);
+      
+      // Create headers with auth token if provided
+      const headers = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
       
       let response;
       
       switch (method.toLowerCase()) {
         case 'get':
-          response = await apiHandler.get(endpoint);
+          response = await apiHandler.get(endpoint, { headers });
           break;
         case 'post':
           console.log(`📤 POST payload for ${endpoint}:`, data);
-          response = await apiHandler.post(endpoint, data);
+          response = await apiHandler.post(endpoint, data, { headers });
           break;
         case 'put':
-          response = await apiHandler.put(endpoint, data);
+          response = await apiHandler.put(endpoint, data, { headers });
           break;
         case 'delete':
-          response = await apiHandler.delete(endpoint);
+          response = await apiHandler.delete(endpoint, { headers });
           break;
         default:
           throw new Error(`Unsupported method: ${method}`);
       }
-
       console.log(`✅ ${method.toUpperCase()} ${endpoint} succeeded on attempt ${attempt + 1}`);
       
       // Validate response if validator function is provided
@@ -290,66 +297,6 @@ async function deleteTopping(id) {
   });
 }
 
-// ==== Payment & Checkout API ====
-
-/**
- * Create a checkout session with mock payment API
- * @param {Object} checkoutData - Data required for checkout
- * @param {Array} checkoutData.items - Cart items for checkout
- * @param {Object} checkoutData.customerInfo - Customer information (optional)
- * @param {string} checkoutData.successUrl - URL to redirect after successful payment
- * @param {string} checkoutData.cancelUrl - URL to redirect if checkout is cancelled
- * @returns {Promise<Object>} - Checkout session data including session ID
- */
-async function createCheckoutSession(checkoutData) {
-  if (!checkoutData || !checkoutData.items || !checkoutData.items.length) {
-    throw new Error("Checkout requires at least one item");
-  }
-
-  return makeRequest({
-    method: 'post',
-    endpoint: '/checkout/mock-session',
-    data: checkoutData,
-    validateResponse: (response) => response && response.sessionId
-  });
-}
-
-/**
- * Process a mock order payment
- * @param {Object} paymentDetails - Payment details
- * @returns {Promise<Object>} - Payment confirmation
- */
-async function processPayment(paymentDetails) {
-  if (!paymentDetails) {
-    throw new Error("Payment details are required");
-  }
-  
-  return makeRequest({
-    method: 'post',
-    endpoint: '/checkout/process-payment',
-    data: paymentDetails,
-    retries: 1
-  });
-}
-
-/**
- * Retrieve checkout session status
- * @param {string} sessionId - Mock checkout session ID
- * @returns {Promise<Object>} - Session status information
- */
-async function getCheckoutSession(sessionId) {
-  if (!sessionId) {
-    throw new Error("Session ID is required");
-  }
-  
-  return makeRequest({
-    method: 'get',
-    endpoint: `/checkout/sessions/${sessionId}`,
-    retries: 1
-  });
-}
-
-// ==== Other API Methods ====
 
 /**
  * Get items in a specific category
@@ -499,10 +446,6 @@ export {
   createTopping,
   updateTopping,
   deleteTopping,
-  
-  createCheckoutSession,
-  processPayment,
-  getCheckoutSession,
   
   // Export for testing or extending
   makeRequest,
