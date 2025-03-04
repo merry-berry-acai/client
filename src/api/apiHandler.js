@@ -14,8 +14,17 @@ apiHandler.interceptors.request.use(
     if (API_CONFIG.logRequests) {
       console.log(`🚀 API Request: ${config.method.toUpperCase()} ${config.url}`);
       
-      if (API_CONFIG.logLevel === 'verbose' && config.data) {
-        console.log('📦 Request Payload:', config.data);
+      if (API_CONFIG.logLevel === 'verbose') {
+        if (config.data) {
+          console.log('📦 Request Payload:', config.data);
+        }
+        
+        // Log headers with sensitive info redacted
+        const safeHeaders = { ...config.headers };
+        if (safeHeaders.Authorization) {
+          safeHeaders.Authorization = safeHeaders.Authorization.substring(0, 15) + '...';
+        }
+        console.log('🔑 Request Headers:', safeHeaders);
       }
     }
     return config;
@@ -99,6 +108,12 @@ async function makeRequest(options) {
       const headers = {};
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
+        console.log(`🔑 Using auth token: ${authToken.substring(0, 10)}...`);
+      }
+      
+      // Log headers for debugging
+      if (API_CONFIG.logLevel === 'verbose') {
+        console.log(`🔑 Request Headers:`, headers);
       }
       
       let response;
@@ -133,6 +148,20 @@ async function makeRequest(options) {
     catch (error) {
       lastError = error;
       console.error(`❌ Attempt ${attempt + 1} failed for ${method.toUpperCase()} ${endpoint}:`, error.message);
+      
+      // Log request details that failed, including headers
+      if (API_CONFIG.logLevel === 'verbose' && error.config) {
+        const safeHeaders = { ...error.config.headers };
+        if (safeHeaders.Authorization) {
+          safeHeaders.Authorization = safeHeaders.Authorization.substring(0, 15) + '...';
+        }
+        console.error('🔍 Failed request details:', { 
+          method: error.config.method,
+          url: error.config.url,
+          headers: safeHeaders,
+          data: error.config.data ? JSON.parse(error.config.data) : null
+        });
+      }
       
       // Don't retry if it's a client error (400-499)
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
