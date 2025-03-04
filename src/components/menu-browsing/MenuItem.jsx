@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Card, CardMedia, CardContent, Typography, Button, Box, Chip, Divider } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import ImageIcon from '@mui/icons-material/Image';
 import CustomisationModal from './CustomisationModal';
 import { CartContext } from '../../contexts/CartContext';
 
@@ -8,13 +9,15 @@ const MenuItem = ({ item }) => {
   const [showModal, setShowModal] = useState(false);
   const { addToCart } = useContext(CartContext);
   const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = (selectedToppings, quantity) => {
     addToCart(item, selectedToppings, quantity);
     setShowModal(false);
   };
 
-  const imageURL = item.imageURL || new URL('../assets/default-item.png', import.meta.url).href;
+  // Try to use the item's image URL, falling back to error handling if it doesn't load
+  const imageURL = item.imageURL || item.image;
 
   return (
     <Card 
@@ -34,43 +37,35 @@ const MenuItem = ({ item }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Box sx={{ position: 'relative' }}>
-        <CardMedia
-          component="img"
-          image={imageURL}
-          alt={item.name}
-          sx={{ 
-            height: 220,
-            objectFit: 'cover',
-          }}
-        />
-        {item.isVegetarian && (
-          <Chip 
-            label="Vegetarian" 
-            size="small"
+      <Box sx={{ position: 'relative', height: 220 }}>
+        {imageURL && !imageError ? (
+          <CardMedia
+            component="img"
+            image={imageURL}
+            alt={item.name}
             sx={{ 
-              position: 'absolute',
-              top: 10,
-              right: 10,
-              backgroundColor: 'rgba(76, 175, 80, 0.9)',
-              color: 'white',
-              fontWeight: 'bold'
+              height: '100%',
+              objectFit: 'cover',
             }}
+            onError={() => setImageError(true)}
           />
-        )}
-        {item.isNew && (
-          <Chip 
-            label="New" 
-            size="small"
+        ) : (
+          <Box 
             sx={{ 
-              position: 'absolute',
-              top: 10,
-              left: 10,
-              backgroundColor: 'rgba(138, 43, 226, 0.9)',
-              color: 'white',
-              fontWeight: 'bold'
+              height: '100%',
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              bgcolor: '#f5f5f5',
+              color: '#9e9e9e'
             }}
-          />
+          >
+            <ImageIcon sx={{ fontSize: 60, mb: 1, opacity: 0.7 }} />
+            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              {item.name}
+            </Typography>
+          </Box>
         )}
       </Box>
       

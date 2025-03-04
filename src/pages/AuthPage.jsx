@@ -1,11 +1,12 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { AuthContext } from "../contexts/AuthContext";
 import { 
   Container, Paper, Typography, TextField, Button, Box, 
   Divider, InputAdornment, IconButton, FormControl,
-  FormControlLabel, Checkbox, Alert, CircularProgress,
-  Fade, FormHelperText, Chip
+  Alert, CircularProgress, Fade, Chip
 } from "@mui/material";
 import { Visibility, VisibilityOff, Person, Email, Lock } from '@mui/icons-material';
 import { handleGoogleSignIn, signIn, signUp } from "../utils/firebase";
@@ -19,81 +20,65 @@ const popularItems = [
 ];
 
 const AuthPage = ({ variant }) => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    displayName: '',
-    favorites: []
-  });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
-  const handleFavoriteToggle = (item) => {
-    setFormData(prev => {
-      const currentFavorites = [...prev.favorites];
-      if (currentFavorites.includes(item)) {
-        return { ...prev, favorites: currentFavorites.filter(fav => fav !== item) };
-      } else {
-        return { ...prev, favorites: [...currentFavorites, item] };
-      }
-    });
+  // Create validation schema based on variant
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email('Invalid email address')
+      .required('Email is required'),
+    password: Yup.string()
+      .required('Password is required')
+      .min(variant === "signup" ? 6 : 1, 'Password must be at least 6 characters'),
+    ...(variant === "signup" && {
+      displayName: Yup.string().required('Name is required')
+    })
+  });
+
+  const initialValues = {
+    email: '',
+    password: '',
+    displayName: variant === "signup" ? '' : undefined,
+    favorites: []
   };
 
   const handlePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const validateForm = () => {
-    if (!formData.email) {
-      setError('Email is required');
-      return false;
+  const handleFavoriteToggle = (item, formik) => {
+    const currentFavorites = [...formik.values.favorites];
+    if (currentFavorites.includes(item)) {
+      formik.setFieldValue('favorites', currentFavorites.filter(fav => fav !== item));
+    } else {
+      formik.setFieldValue('favorites', [...currentFavorites, item]);
     }
-    
-    if (!formData.password) {
-      setError('Password is required');
-      return false;
-    }
-    
-    if (variant === "signup" && !formData.displayName) {
-      setError('Name is required');
-      return false;
-    }
-    
-    return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values, { setSubmitting }) => {
     setError('');
     
-    if (!validateForm()) return;
-    
-    setLoading(true);
     try {
       if (variant === "signin") {
-        await signIn(formData.email, formData.password, navigate);
+        await signIn(values.email, values.password, navigate);
       } else {
+        // For signup, pass both displayName and additional user data (favorites)
         await signUp(
-          formData.email, 
-          formData.password, 
+          values.email, 
+          values.password, 
           navigate, 
-          formData.displayName,
-          { favorites: formData.favorites }
+          values.displayName,  // Pass the display name
+          { favorites: values.favorites } // Pass additional user data
         );
       }
     } catch (error) {
       console.error('Authentication error:', error);
       setError(error.message || 'Authentication failed. Please try again.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -136,156 +121,187 @@ const AuthPage = ({ variant }) => {
               </Typography>
             </Divider>
             
-            {/* Error Alert */}
+            {/* Server Error Alert */}
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
               </Alert>
             )}
             
-            {/* Form */}
-            <Box component="form" onSubmit={handleSubmit} noValidate>
-              {variant === "signup" && (
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  name="displayName"
-                  value={formData.displayName}
-                  onChange={handleChange}
-                  margin="normal"
-                  variant="outlined"
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Person sx={{ color: 'purple' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 2 }}
-                />
-              )}
-              
-              <TextField
-                fullWidth
-                label="Email Address"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                margin="normal"
-                variant="outlined"
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email sx={{ color: 'purple' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
-              />
-              
-              <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={handleChange}
-                margin="normal"
-                variant="outlined"
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock sx={{ color: 'purple' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={handlePasswordVisibility}
-                        edge="end"
-                        aria-label="toggle password visibility"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
-              />
-              
-              {/* Favorite Items Selection (only for signup) */}
-              {variant === "signup" && (
-                <FormControl fullWidth sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    Select your favorite items (optional)
+            {/* Form with Formik */}
+            <Formik
+              initialValues={initialValues}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {({ isSubmitting, errors, touched, values, setFieldValue }) => (
+                <Form>
+                  {/* Name Field (only for signup) */}
+                  {variant === "signup" && (
+                    <Field
+                      as={TextField}
+                      fullWidth
+                      label="Full Name"
+                      name="displayName"
+                      margin="normal"
+                      variant="outlined"
+                      required
+                      error={touched.displayName && Boolean(errors.displayName)}
+                      helperText={touched.displayName && errors.displayName}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Person sx={{ 
+                              color: touched.displayName && errors.displayName ? 'error.main' : 'purple' 
+                            }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ mb: 2 }}
+                    />
+                  )}
+                  
+                  {/* Email Field */}
+                  <Field
+                    as={TextField}
+                    fullWidth
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    margin="normal"
+                    variant="outlined"
+                    required
+                    error={touched.email && Boolean(errors.email)}
+                    helperText={touched.email && errors.email}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email sx={{ 
+                            color: touched.email && errors.email ? 'error.main' : 'purple' 
+                          }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+                  
+                  {/* Password Field */}
+                  <Field
+                    as={TextField}
+                    fullWidth
+                    label="Password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    margin="normal"
+                    variant="outlined"
+                    required
+                    error={touched.password && Boolean(errors.password)}
+                    helperText={touched.password && errors.password}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock sx={{ 
+                            color: touched.password && errors.password ? 'error.main' : 'purple' 
+                          }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={handlePasswordVisibility}
+                            edge="end"
+                            aria-label="toggle password visibility"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+                  
+                  {/* Favorite Items Selection (only for signup) */}
+                  {variant === "signup" && (
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                        Select your favorite items (optional)
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {popularItems.map((item) => (
+                          <Chip 
+                            key={item}
+                            label={item}
+                            clickable
+                            onClick={() => handleFavoriteToggle(item, { values, setFieldValue })}
+                            color={values.favorites.includes(item) ? "primary" : "default"}
+                            variant={values.favorites.includes(item) ? "filled" : "outlined"}
+                            sx={{ 
+                              bgcolor: values.favorites.includes(item) ? 'rgba(128, 0, 128, 0.1)' : 'transparent',
+                              color: values.favorites.includes(item) ? 'purple' : 'text.primary',
+                              borderColor: values.favorites.includes(item) ? 'purple' : 'inherit',
+                              '&:hover': {
+                                bgcolor: values.favorites.includes(item) ? 'rgba(128, 0, 128, 0.2)' : 'rgba(0, 0, 0, 0.04)'
+                              }
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </FormControl>
+                  )}
+                  
+                  <Button 
+                    type="submit" 
+                    fullWidth 
+                    variant="contained" 
+                    disabled={isSubmitting}
+                    sx={{ 
+                      mt: 3,
+                      mb: 2,
+                      py: 1.5,
+                      bgcolor: 'purple',
+                      '&:hover': {
+                        bgcolor: 'darkviolet',
+                      },
+                      position: 'relative'
+                    }}
+                  >
+                    {isSubmitting ? (
+                      <CircularProgress size={24} sx={{ color: 'white' }} />
+                    ) : (
+                      variant === "signin" ? "Sign In" : "Create Account"
+                    )}
+                  </Button>
+                  
+                  <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+                    {variant === "signin" ? "Don't have an account? " : "Already have an account? "}
+                    <Link 
+                      to={variant === "signin" ? "/auth/register" : "/auth/login"}
+                      style={{ color: 'purple', textDecoration: 'none', fontWeight: 500 }}
+                    >
+                      {variant === "signin" ? "Sign Up" : "Sign In"}
+                    </Link>
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {popularItems.map((item) => (
-                      <Chip 
-                        key={item}
-                        label={item}
-                        clickable
-                        onClick={() => handleFavoriteToggle(item)}
-                        color={formData.favorites.includes(item) ? "primary" : "default"}
-                        variant={formData.favorites.includes(item) ? "filled" : "outlined"}
-                        sx={{ 
-                          bgcolor: formData.favorites.includes(item) ? 'rgba(128, 0, 128, 0.1)' : 'transparent',
-                          color: formData.favorites.includes(item) ? 'purple' : 'text.primary',
-                          borderColor: formData.favorites.includes(item) ? 'purple' : 'inherit',
-                          '&:hover': {
-                            bgcolor: formData.favorites.includes(item) ? 'rgba(128, 0, 128, 0.2)' : 'rgba(0, 0, 0, 0.04)'
-                          }
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </FormControl>
+                  
+                  {variant === "signin" && (
+                    <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+                      <Link 
+                        to="/auth/forgot-password"
+                        style={{ color: 'purple', textDecoration: 'none', fontWeight: 500 }}
+                      >
+                        Forgot Password?
+                      </Link>
+                    </Typography>
+                  )}
+                </Form>
               )}
-              
-              <Button 
-                type="submit" 
-                fullWidth 
-                variant="contained" 
-                disabled={loading}
-                sx={{ 
-                  mt: 3,
-                  mb: 2,
-                  py: 1.5,
-                  bgcolor: 'purple',
-                  '&:hover': {
-                    bgcolor: 'darkviolet',
-                  },
-                  position: 'relative'
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: 'white' }} />
-                ) : (
-                  variant === "signin" ? "Sign In" : "Create Account"
-                )}
-              </Button>
-              
-              <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-                {variant === "signin" ? "Don't have an account? " : "Already have an account? "}
-                <Link 
-                  to={variant === "signin" ? "/auth/register" : "/auth/login"}
-                  style={{ color: 'purple', textDecoration: 'none', fontWeight: 500 }}
-                >
-                  {variant === "signin" ? "Sign Up" : "Sign In"}
-                </Link>
-              </Typography>
-            </Box>
+            </Formik>
           </Paper>
         </Fade>
       </Container>
       <DebugPanel 
         componentName="AuthPage" 
         props={{ variant }} 
-        contextData={{ auth: authContext, formState: formData }}
+        contextData={{ auth: authContext }}
       />
     </Layout>
   );

@@ -113,7 +113,7 @@ const Navigation = () => {
       position="sticky" 
       elevation={2}
       sx={{ 
-        bgcolor: 'purple', 
+        bgcolor: '#8a2be2', 
         color: 'white',
         borderBottom: '1px solid',
         borderColor: 'rgba(255,255,255,0.1)'
@@ -210,7 +210,7 @@ const Navigation = () => {
                   fontWeight: 500,
                   display: { xs: 'none', sm: 'flex' },
                   bgcolor: 'white',
-                  color: 'purple',
+                  color: '#8a2be2',
                   '&:hover': {
                     bgcolor: 'rgba(255,255,255,0.9)',
                   }
