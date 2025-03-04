@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { 
   Typography, 
   Box, 
   Button, 
-  Grid
+  Grid,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import CartItem from '../cart/CartItem';
 import CheckoutOrderSummary from './CheckoutOrderSummary';
+import { AuthContext } from '../../contexts/AuthContext';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const CheckoutStepReview = ({ 
   cartItems, 
@@ -17,12 +21,52 @@ const CheckoutStepReview = ({
   onNextStep,
   onSkipToSuccess 
 }) => {
+  const { currentUser } = useContext(AuthContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleContinue = () => {
+    if (!currentUser) {
+      setError("You must be logged in to place an order");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    // Format the order according to the required schema
+    const orderData = {
+      uid: currentUser.uid,
+      items: cartItems.map(item => ({
+        product: item._id,
+        quantity: item.quantity || 1,
+        toppings: Array.isArray(item.customization) ? 
+          item.customization.map(topping => ({
+            product: topping._id,
+            quantity: topping.quantity || 1
+          })) : [],
+      })),
+      totalPrice: total
+    };
+
+    // Send the order data up to the parent component
+    // This will handle submitting the order and creating a payment intent
+    onNextStep(orderData);
+  };
+
   return (
     <Grid container spacing={4}>
       <Grid item xs={12} md={7}>
         <Typography variant="h6" gutterBottom>
           Review Your Order
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Box sx={{ mt: 2 }}>
           {cartItems.map((item, index) => (
             <CartItem 
@@ -50,13 +94,21 @@ const CheckoutStepReview = ({
           <Box>
             <Button 
               variant="contained"
-              onClick={onNextStep}
+              onClick={handleContinue}
+              disabled={isSubmitting}
               sx={{
                 backgroundColor: '#8a2be2',
                 '&:hover': { backgroundColor: '#6a1fb1' }
               }}
             >
-              Continue to Payment
+              {isSubmitting ? (
+                <React.Fragment>
+                  <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> 
+                  Processing...
+                </React.Fragment>
+              ) : (
+                "Continue to Payment"
+              )}
             </Button>
             
             {/* Development Fallback Button */}
