@@ -11,10 +11,12 @@ import {
   ShoppingBag as ShoppingBagIcon,
   CheckCircleOutline as CheckCircleOutlineIcon 
 } from '@mui/icons-material';
+import { formatOrderId } from '../../utils/orderUtils';
 
-const CheckoutStepConfirmation = ({ onContinueShopping }) => {
+const CheckoutStepConfirmation = ({ onContinueShopping, orderId }) => {
   // Generate a random order number for demo purposes
-  const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+  // Use the orderId from props if available, otherwise generate a temporary one
+  const orderNumber = orderId ? formatOrderId(orderId) : `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
   const orderDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
