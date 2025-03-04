@@ -34,9 +34,8 @@ const CheckoutStepReview = ({
     setIsSubmitting(true);
     setError(null);
 
-    // Format the order according to the required schema
+    // Format the order without including uid in the body
     const orderData = {
-      uid: currentUser.uid,
       items: cartItems.map(item => ({
         product: item._id,
         quantity: item.quantity || 1,
@@ -50,7 +49,6 @@ const CheckoutStepReview = ({
     };
 
     // Send the order data up to the parent component
-    // This will handle submitting the order and creating a payment intent
     onNextStep(orderData);
   };
 
