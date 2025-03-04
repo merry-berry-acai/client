@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useEffect, useContext } from 'react';
 import { SnackbarContext } from './SnackbarContext';
+import { AuthContext } from './AuthContext';
 import { getCartFromStorage, saveCartToStorage, removeItem } from '../utils/localStorage';
 
 export const CartContext = createContext();
@@ -12,6 +13,7 @@ export const CartProvider = ({ children }) => {
 	});
 
 	const { showSuccess, showError, showInfo } = useContext(SnackbarContext);
+	const { currentUser } = useContext(AuthContext);
 	
 	// Update localStorage whenever cart changes
 	const setCartItems = useCallback((items) => {
