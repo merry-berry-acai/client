@@ -31,7 +31,7 @@ export const AUTH_CONFIG = {
   adminCacheKey: 'auth_admin_status',
   adminCacheExpiry: 1000 * 60 * 60, // 1 hour
   // For development: hardcoded admin UID
-  adminUID: "EszW3BDsb4P6qLp9gJ03IRkCTKn2"
+  adminUID: "nYoUNJqj8Wh4NbHcH4Go2Wz1Ie82"
 };
 
 // Payment Configuration
