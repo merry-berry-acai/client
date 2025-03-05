@@ -162,5 +162,99 @@ export async function getUserOrders(uid, authToken) {
   }
 }
 
+/**
+ * Fetches all users (admin only)
+ * @returns {Promise<Array>} Array of user objects
+ */
+export async function fetchUsers() {
+  const authToken = await getAuthToken();
+  log.info('Fetching all users (admin operation)');
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'get',
+      endpoint: '/users',
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error('Error fetching users:', error);
+    throw error;
+  }
+}
+
+/**
+ * Creates a new user (admin only)
+ * @param {Object} userData - User data to create
+ * @returns {Promise<Object>} Created user object
+ */
+export async function createUser(userData) {
+  const authToken = await getAuthToken();
+  log.info('Creating new user (admin operation)');
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'post',
+      endpoint: '/users',
+      data: userData,
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error('Error creating user:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates an existing user (admin only)
+ * @param {string} userId - ID of user to update
+ * @param {Object} userData - Updated user data
+ * @returns {Promise<Object>} Updated user object
+ */
+export async function updateUser(userId, userData) {
+  const authToken = await getAuthToken();
+  log.info(`Updating user ${userId} (admin operation)`);
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'put',
+      endpoint: `/users/${userId}`,
+      data: userData,
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error(`Error updating user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a user (admin only)
+ * @param {string} userId - ID of user to delete
+ * @returns {Promise<Object>} Response data
+ */
+export async function deleteUser(userId) {
+  const authToken = await getAuthToken();
+  log.info(`Deleting user ${userId} (admin operation)`);
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'delete',
+      endpoint: `/users/${userId}`,
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error(`Error deleting user ${userId}:`, error);
+    throw error;
+  }
+}
+
 // Export the helper function for other services that might need to access user endpoints
 export { ensureAuthTokenForUserEndpoint };
