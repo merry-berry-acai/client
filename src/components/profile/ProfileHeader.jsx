@@ -3,13 +3,15 @@ import { Box, Avatar, Typography, Button, Paper } from '@mui/material';
 import { Edit, Mail } from "lucide-react";
 import { AuthContext } from '../../contexts/AuthContext';
 import { getUserPhoto } from '../../utils/localStorage';
+import { getFullImageUrl } from '../../utils/imageUtils';
 
 const ProfileHeader = () => {
   const { currentUser } = useContext(AuthContext);
   
   const photoData = getUserPhoto();
   const defaultPhoto = "/assets/default-user.png";
-  const photoSrc = photoData || currentUser?.photoURL || defaultPhoto;
+  // Use getFullImageUrl for photoURL if it's not a base64 string
+  const photoSrc = photoData || (currentUser?.photoURL ? getFullImageUrl(currentUser.photoURL) : defaultPhoto);
   const profileInitial = currentUser?.displayName ? currentUser?.displayName?.charAt(0) : 'U';
 
   return (

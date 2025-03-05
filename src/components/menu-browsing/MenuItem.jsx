@@ -2,8 +2,9 @@ import React, { useState, useContext } from 'react';
 import { Card, CardMedia, CardContent, Typography, Button, Box, Chip, Divider } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ImageIcon from '@mui/icons-material/Image';
-import CustomisationModal from './CustomisationModal';
 import { CartContext } from '../../contexts/CartContext';
+import CustomisationModal from './CustomisationModal';
+import AppImage from '../common/AppImage';
 
 const MenuItem = ({ item }) => {
   const [showModal, setShowModal] = useState(false);
@@ -15,9 +16,6 @@ const MenuItem = ({ item }) => {
     addToCart(item, selectedToppings, quantity);
     setShowModal(false);
   };
-
-  // Try to use the item's image URL, falling back to error handling if it doesn't load
-  const imageURL = item.imageURL || item.image;
 
   return (
     <Card 
@@ -38,21 +36,24 @@ const MenuItem = ({ item }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Box sx={{ position: 'relative', height: 220 }}>
-        {imageURL && !imageError ? (
-          <CardMedia
-            component="img"
-            image={imageURL}
-            alt={item.name}
-            sx={{ 
-              height: '100%',
-              objectFit: 'cover',
-            }}
-            onError={() => setImageError(true)}
-          />
-        ) : (
+        <AppImage
+          src={item.imageUrl}
+          alt={item.name}
+          fallbackSrc="/assets/default-food.png"
+          onError={() => setImageError(true)}
+          sx={{ 
+            height: '100%',
+            width: '100%'
+          }}
+        />
+        {imageError && (
           <Box 
             sx={{ 
-              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               display: 'flex', 
               flexDirection: 'column',
               alignItems: 'center', 
