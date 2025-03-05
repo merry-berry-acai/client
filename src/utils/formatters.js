@@ -4,14 +4,10 @@
  * @param {string} currency - The currency code (default: USD)
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (amount, currency = 'USD') => {
-  if (amount === undefined || amount === null) return '$0.00';
-  
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2
-  }).format(amount);
+export const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '$0.00';
+  const numberValue = typeof value === 'string' ? parseFloat(value) : value;
+  return `$${numberValue.toFixed(2)}`;
 };
 
 /**
@@ -21,16 +17,12 @@ export const formatCurrency = (amount, currency = 'USD') => {
  * @returns {string} Formatted date string
  */
 export const formatDate = (date, options = {}) => {
-  if (!date) return '';
-  
-  const dateObj = new Date(date);
-  if (isNaN(dateObj.getTime())) return '';
-  
   const defaultOptions = {
     year: 'numeric',
     month: 'short',
-    day: 'numeric',
+    day: 'numeric'
   };
   
+  const dateObj = date instanceof Date ? date : new Date(date);
   return dateObj.toLocaleDateString('en-US', { ...defaultOptions, ...options });
 };
