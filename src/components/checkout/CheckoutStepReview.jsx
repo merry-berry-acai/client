@@ -124,7 +124,7 @@ const CheckoutStepReview = ({
                 }
               }}
             >
-              DEV: Skip to Success
+              DEV: Skip to Payment
             </Button>
           </Box>
         </Box>
