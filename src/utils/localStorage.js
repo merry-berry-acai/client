@@ -109,7 +109,17 @@ export const getCartFromStorage = () => {
 
 export const saveCartToStorage = (cartItems) => {
   try {
-    localStorage.setItem('simple-cart', JSON.stringify(cartItems));
+    // Store only essential cart data, images will be retrieved from menu context
+    const minimalItems = cartItems.map(item => ({
+      _id: item._id,
+      name: item.name,
+      basePrice: item.basePrice,
+      quantity: item.quantity || 1,
+      customization: item.customization || [],
+      cartItemId: item.cartItemId
+    }));
+    
+    localStorage.setItem('simple-cart', JSON.stringify(minimalItems));
     return true;
   } catch (err) {
     console.error("Failed to save cart to localStorage:", err);
