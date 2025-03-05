@@ -20,6 +20,7 @@ import CartItem from '../components/cart/CartItem';
 import { CartContext } from '../contexts/CartContext';
 import Layout from '../components/Layout';
 import DebugPanel from '../components/DebugPanel';
+import EducatorNote from '../components/EducatorNote';
 
 const CartPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
@@ -86,7 +87,19 @@ const CartPage = () => {
   return (
     <Layout>
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Page Header */}
+      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+        Your Shopping Cart
+      </Typography>
+      
+      {/* Educator Note */}
+      <EducatorNote sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          This cart implements React Context for state management. Try adding items from the menu, adjusting quantities, 
+          and proceeding to checkout to see how context maintains state across your shopping experience.
+        </Typography>
+      </EducatorNote>
+        
+      {/* Rest of the cart content */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 500 }}>
