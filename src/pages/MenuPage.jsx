@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { MenuContext } from '../contexts/MenuContext';
 import Layout from '../components/Layout';
 import DebugPanel from '../components/DebugPanel';
+import EducatorNote from '../components/EducatorNote';
 import { 
   MenuPageHeader, 
   CategorySidebar, 
@@ -78,7 +79,20 @@ const MenuPage = () => {
         isDesktop={isDesktop} 
       />
       
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Our Menu
+        </Typography>
+        
+        {/* Educator Note */}
+        <EducatorNote sx={{ mb: 3 }} hideOnMobile={true}>
+          <Typography variant="body2">
+            This menu page demonstrates data fetching from an API with loading states, filtering, 
+            and adding items to cart. Notice how the MenuContext is used to manage category filters 
+            and product data across components.
+          </Typography>
+        </EducatorNote>
+        
         <Box sx={{ py: 4 }}>
           {isDesktop ? (
             // Desktop 2-column layout
