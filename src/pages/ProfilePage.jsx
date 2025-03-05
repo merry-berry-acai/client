@@ -17,7 +17,7 @@ import SupportSection from '../components/profile/SupportSection';
 const ORDERS_PER_PAGE = 5;
 
 const Profile = () => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, authToken } = useContext(AuthContext);
   const { showSuccess, showError } = useSnackbar();
   const [allOrders, setAllOrders] = useState([]); // All orders fetched from API
   const [displayedOrders, setDisplayedOrders] = useState([]); // Orders currently displayed
@@ -56,7 +56,7 @@ const Profile = () => {
     setError(null);
     
     try {
-      const data = await getUserOrders(currentUser.uid);
+      const data = await getUserOrders(currentUser.uid, authToken);
       setAllOrders(Array.isArray(data) ? data : []);
       
       // Initialize with first page of orders
@@ -70,7 +70,7 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, authToken]);
 
   // Load a specific page of orders from the already fetched data
   const loadOrderPage = (pageNum, ordersSource = sortedOrders) => {
