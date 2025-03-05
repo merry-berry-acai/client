@@ -3,15 +3,19 @@ import {
   Dialog, DialogContent, Grid
 } from '@mui/material';
 import { MenuContext } from '../../contexts/MenuContext';
+import AppImage from '../common/AppImage';
 
-import DebugPanel from './customisation-modal/DebugPanel';
-import ItemPreview from './customisation-modal/ItemPreview';
-import ToppingsPanel from './customisation-modal/ToppingsPanel';
-import ModalFooter from './customisation-modal/ModalFooter';
-import ModalHeader from './customisation-modal/ModalHeader';
+// Import using barrel file
+import { 
+  DebugPanel, 
+  ItemPreview, 
+  ToppingsPanel, 
+  ModalFooter, 
+  ModalHeader 
+} from './customisation-modal';
 
 // Enable this for development debugging
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 // Maximum quantity for a single topping
 const MAX_TOPPING_QUANTITY = 3;
 
@@ -200,6 +204,8 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
               incrementQuantity={incrementQuantity}
               decrementQuantity={decrementQuantity}
             />
+            {/* Properly pass all possible image sources */}
+            
           </Grid>
           
           <Grid item xs={12} md={7}>
