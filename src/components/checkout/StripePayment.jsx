@@ -5,7 +5,8 @@ import {
   Button,
   CircularProgress,
   Typography,
-  Alert
+  Alert,
+  Paper
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 
@@ -19,6 +20,7 @@ const CARD_ELEMENT_OPTIONS = {
       '::placeholder': {
         color: '#aab7c4',
       },
+      padding: '16px',
     },
     invalid: {
       color: '#fa755a',
@@ -93,16 +95,26 @@ const StripePayment = ({ clientSecret, orderId, onPaymentSuccess, onPaymentError
       )}
       
       <form onSubmit={handleSubmit}>
-        <Box 
+        <Paper 
+          elevation={0} 
           sx={{ 
-            border: '1px solid #e0e0e0', 
-            borderRadius: 1,
-            p: 2,
-            mb: 3
+            border: '1px solid #e0e0e0',
+            borderRadius: 2,
+            p: 2.5,
+            mb: 3,
+            backgroundColor: 'rgba(138, 43, 226, 0.02)',
+            '&:hover': {
+              borderColor: '#8a2be2',
+              boxShadow: '0 0 0 1px rgba(138, 43, 226, 0.2)',
+            }
           }}
         >
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Card Number, Expiry Date and CVC
+          </Typography>
+          
           <CardElement options={CARD_ELEMENT_OPTIONS} />
-        </Box>
+        </Paper>
         
         <Button
           type="submit"
@@ -112,16 +124,19 @@ const StripePayment = ({ clientSecret, orderId, onPaymentSuccess, onPaymentError
           sx={{
             backgroundColor: '#8a2be2',
             '&:hover': { backgroundColor: '#6a1fb1' },
-            py: 1.2,
+            py: 1.5,
             px: 3,
-            minWidth: 180
+            borderRadius: 2,
+            textTransform: 'none',
+            fontSize: '1rem',
+            fontWeight: 500
           }}
           startIcon={processing ? <CircularProgress size={20} color="inherit" /> : <LockIcon />}
         >
           {processing ? 'Processing...' : succeeded ? 'Payment Successful' : 'Pay Securely'}
         </Button>
 
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: 'text.secondary' }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, textAlign: 'center', color: 'text.secondary' }}>
           Your payment information is secured with SSL encryption
         </Typography>
       </form>

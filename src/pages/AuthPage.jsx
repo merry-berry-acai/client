@@ -13,6 +13,7 @@ import { handleGoogleSignIn, signIn, signUp } from "../utils/firebase";
 import GoogleButton from "react-google-button";
 import Layout from "../components/Layout";
 import DebugPanel from "../components/DebugPanel";
+import EducatorNote from "../components/EducatorNote";
 import { ENV_CONFIG } from "../config";
 
 const popularItems = [
@@ -108,33 +109,31 @@ const AuthPage = ({ variant }) => {
               {variant === "signin" ? "Welcome Back" : "Create Account"}
             </Typography>
             
-            {/* Development Environment Credentials Alert */}
+            {/* Educator Note with Testing Credentials */}
             {ENV_CONFIG.isDevelopment && (
-              <Alert 
-                severity="info" 
-                sx={{ 
-                  mb: 3, 
-                  '& .MuiAlert-message': { 
-                    width: '100%' 
-                  } 
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                  Developer Testing Credentials:
+              <EducatorNote sx={{ mb: 3 }}>
+                <Typography variant="body2" sx={{ mb: 1.5 }}>
+                  For testing purposes, you can use these demo accounts:
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>User Account:</Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, ml: 1 }}>
+                  <Box sx={{ bgcolor: 'rgba(138, 43, 226, 0.05)', p: 1, borderRadius: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#6a1fb1' }}>
+                      User Account:
+                    </Typography>
                     <Typography variant="body2">Email: user@merry-berry.com.au</Typography>
                     <Typography variant="body2">Password: user123</Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Admin Account:</Typography>
+                  
+                  <Box sx={{ bgcolor: 'rgba(138, 43, 226, 0.05)', p: 1, borderRadius: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#6a1fb1' }}>
+                      Admin Account:
+                    </Typography>
                     <Typography variant="body2">Email: admin@merry-berry.com.au</Typography>
                     <Typography variant="body2">Password: admin123</Typography>
                   </Box>
                 </Box>
-              </Alert>
+              </EducatorNote>
             )}
             
             {/* Google Sign In */}

@@ -23,6 +23,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { CartContext } from '../contexts/CartContext';
 import ProfileDropdown from './ProfileDropdown';
 import CartDropdown from './cart/CartDropdown';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 const logo = new URL('../assets/logo.jpg', import.meta.url).href;
 
@@ -47,6 +48,9 @@ const Navigation = () => {
   const isActive = (path) => {
     return location.pathname === path;
   };
+
+  // If logo is a relative path, transform it to a full URL
+  const logoUrl = logo.startsWith('/') ? getFullImageUrl(logo) : logo;
 
   // Mobile drawer content
   const drawer = (
@@ -143,7 +147,7 @@ const Navigation = () => {
             }}>
               <Box
                 component="img"
-                src={logo}
+                src={logoUrl}
                 alt="Merry Berry Logo"
                 sx={{
                   height: 40,

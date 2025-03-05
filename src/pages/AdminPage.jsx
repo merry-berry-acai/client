@@ -10,6 +10,7 @@ import Layout from '../components/Layout';
 import ItemManager from '../components/admin/ItemManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import ToppingManager from '../components/admin/ToppingManager';
+import EducatorNote from '../components/EducatorNote';
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -32,6 +33,15 @@ const AdminPage = () => {
           <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'purple', mb: 4 }}>
             Admin Dashboard
           </Typography>
+          
+          {/* Educator Note */}
+          <EducatorNote sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              This admin panel demonstrates role-based access control. Use the admin account 
+              (admin@merry-berry.com.au / admin123) to explore all administrative features. Regular user accounts 
+              will be redirected if they attempt to access this page directly.
+            </Typography>
+          </EducatorNote>
           
           <Grid container spacing={3}>
             {/* Sidebar */}

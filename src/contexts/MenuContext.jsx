@@ -37,7 +37,6 @@ export const MenuProvider = ({ children }) => {
       
       // If force refresh is true, remove all cache entries first
       if (forceRefresh) {
-        console.log("🔄 Force refreshing cache - clearing existing cache entries");
         Object.values(CACHE_CONFIG.keys).forEach(key => {
           removeItem(getCacheKey(key));
         });
@@ -126,7 +125,6 @@ export const MenuProvider = ({ children }) => {
 
   // Function to refresh menu data (can be called manually)
   const refreshMenuData = useCallback(() => {
-    console.log("🔄 Manual refresh of menu data requested");
     fetchAndCacheData(true);
   }, [fetchAndCacheData]);
 
@@ -138,7 +136,6 @@ export const MenuProvider = ({ children }) => {
   // Set up periodic background refresh
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log("⏰ Background refresh interval triggered");
       fetchAndCacheData(false);
     }, CACHE_CONFIG.refreshInterval);
     return () => clearInterval(intervalId);

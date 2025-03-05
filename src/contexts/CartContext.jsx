@@ -1,168 +1,156 @@
-import React, { createContext, useCallback, useEffect, useContext } from 'react';
-import { SnackbarContext } from './SnackbarContext';
-import { AuthContext } from './AuthContext';
-import { getCartFromStorage, saveCartToStorage, removeItem } from '../utils/localStorage';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { MenuContext } from './MenuContext';
 
 export const CartContext = createContext();
 
-// Create a simpler cart implementation without relying on useLocalStorage hook
 export const CartProvider = ({ children }) => {
-	// Read initial cart from localStorage
-	const [cartItems, setCartItemsState] = React.useState(() => {
-		return getCartFromStorage();
-	});
+  const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // Fix: Check if MenuContext exists and provide fallback for menuItems
+  const menuContext = useContext(MenuContext);
+  const menuItems = menuContext?.menuItems || [];
+  
+  // Calculate cart total whenever cart items change
+  useEffect(() => {
+    const newTotal = cartItems.reduce((sum, item) => {
+      const itemPrice = parseFloat(item.basePrice || 0);
+      const toppingsPrice = (item.customization || []).reduce(
+        (toppingSum, topping) => toppingSum + (topping.price * (topping.quantity || 1)), 
+        0
+      );
+      return sum + ((itemPrice + toppingsPrice) * item.quantity);
+    }, 0);
+    
+    setCartTotal(parseFloat(newTotal.toFixed(2)));
+  }, [cartItems]);
 
-	const { showSuccess, showError, showInfo } = useContext(SnackbarContext);
-	const { currentUser } = useContext(AuthContext);
-	
-	// Update localStorage whenever cart changes
-	const setCartItems = useCallback((items) => {
-		try {
-			// If items is a function, call it with current state
-			const newItems = typeof items === 'function' ? items(cartItems) : items;
-			setCartItemsState(newItems);
-			saveCartToStorage(newItems);
-		} catch (err) {
-			console.error("Failed to save cart to localStorage:", err);
-			// Reset cart in case of error
-			setCartItemsState([]);
-			removeItem('simple-cart');
-		}
-	}, [cartItems]);
-	
-	// Generate a simple unique ID for cart items
-	const generateCartItemId = () => `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-	
-	// Add item to cart with a unique cartItemId
-	const addToCart = useCallback((item, customization = null, quantity = 1) => {
-		setCartItems(prev => {
-			// Create a clean customization array
-			const cleanCustomization = customization 
-				? Array.isArray(customization) 
-					? customization 
-					: Array.isArray(customization.customization) 
-						? customization.customization 
-						: []
-				: [];
-			
-			// Check if exact same item with exact same customization exists
-			const existingItemIndex = prev.findIndex(cartItem => {
-				// Check basic item equality
-				if (cartItem._id !== item._id) return false;
-				
-				// If no customizations on both, they match
-				if (cleanCustomization.length === 0 && (!cartItem.customization || cartItem.customization.length === 0)) 
-					return true;
-				
-				// If only one has customization, no match
-				if (cleanCustomization.length === 0 || (!cartItem.customization || cartItem.customization.length === 0))
-					return false;
-				
-				// Otherwise compare customizations
-				if (cleanCustomization.length !== cartItem.customization.length) return false;
-				
-				// Compare each customization item
-				for (let i = 0; i < cleanCustomization.length; i++) {
-					const c1 = cleanCustomization[i];
-					const c2 = cartItem.customization[i];
-					if (c1.id !== c2.id || c1.name !== c2.name) return false;
-				}
-				
-				return true;
-			});
-			
-			// If item exists, update quantity
-			if (existingItemIndex !== -1) {
-				const updated = [...prev];
-				updated[existingItemIndex] = {
-					...updated[existingItemIndex],
-					quantity: (updated[existingItemIndex].quantity || 1) + quantity
-				};
-				showSuccess("Item quantity updated in cart!");
-				return updated;
-			}
-			
-			// Otherwise add as new item
-			const newItem = {
-				...item,
-				customization: cleanCustomization,
-				quantity,
-				cartItemId: generateCartItemId()
-			};
-			showSuccess("Item added to cart!");
-			return [...prev, newItem];
-		});
-	}, [setCartItems, showSuccess]);
-	
-	// Update cart item (simpler approach - always find by cartItemId)
-	const onUpdateCartItem = useCallback((updatedItem) => {
-		if (!updatedItem.cartItemId) {
-			console.error("Cannot update item without cartItemId");
-			return;
-		}
-		
-		setCartItems(prev => {
-			const index = prev.findIndex(item => item.cartItemId === updatedItem.cartItemId);
-			if (index === -1) return prev;
-			
-			const updated = [...prev];
-			updated[index] = {
-				...updatedItem,
-				quantity: updatedItem.quantity || 1
-			};
-			showSuccess("Cart item updated!");
-			return updated;
-		});
-	}, [setCartItems, showSuccess]);
-	
-	// Remove from cart (simplified to use cartItemId only)
-	const removeFromCart = useCallback((itemId, customization = null, cartItemId = null) => {
-		setCartItems(prev => {
-			// If we have a cartItemId, use that for exact removal
-			if (cartItemId) {
-				const filtered = prev.filter(item => item.cartItemId !== cartItemId);
-				if (filtered.length < prev.length) {
-					showSuccess("Item removed from cart!");
-				}
-				return filtered;
-			}
-			
-			// Otherwise just use the item ID
-			const filtered = prev.filter(item => item._id !== itemId);
-			if (filtered.length < prev.length) {
-				showSuccess("Item removed from cart!");
-			}
-			return filtered;
-		});
-	}, [setCartItems, showSuccess]);
-	
-	// Clear cart completely
-	const clearCart = useCallback(() => {
-		setCartItemsState([]);
-		removeItem('simple-cart');
-		// Also try to clear the old cart format
-		removeItem('cart-items');
-		showInfo("Cart has been cleared");
-	}, [showInfo]);
-	
-	// Final validation on component mount
-	useEffect(() => {
-		// Reset cart if it's not an array
-		if (!Array.isArray(cartItems)) {
-			console.error("Cart is not an array, resetting");
-			clearCart();
-		}
-	}, [clearCart, cartItems]);
-	
-	return (
-		<CartContext.Provider value={{ 
-			cartItems, 
-			addToCart, 
-			onUpdateCartItem, 
-			removeFromCart,
-			clearCart
-		}}>
-			{children}
-		</CartContext.Provider>
-	);
+  // Get full cart item with image and other menu data
+  const getFullCartItem = (cartItem) => {
+    // If no item or no menu items available, return the original item
+    if (!cartItem || !menuItems || !menuItems.length) {
+      return cartItem;
+    }
+
+    // Try to find the matching menu item
+    const menuItem = menuItems.find(item => item._id === cartItem._id);
+    
+    if (!menuItem) {
+      return cartItem; // If not found, return the original
+    }
+    
+    // Merge the menu item properties with the cart item, prioritizing cart item values for quantities, etc.
+    return {
+      ...menuItem,          // All menu item properties including images
+      ...cartItem,          // Cart-specific properties override menu ones
+      imageUrl: menuItem.imageUrl || cartItem.imageUrl // Ensure we have the image URL
+    };
+  };
+
+  // Update an existing cart item (for quantity changes or customization edits)
+  const onUpdateCartItem = (updatedItem) => {
+    if (!updatedItem || !updatedItem.cartItemId) {
+      return;
+    }
+    
+    // First check if the item exists in the cart
+    const exists = cartItems.some(item => item.cartItemId === updatedItem.cartItemId);
+    
+    if (exists) {
+      // If the item exists, update it
+      setCartItems(prev => 
+        prev.map(item => 
+          item.cartItemId === updatedItem.cartItemId ? updatedItem : item
+        )
+      );
+    } else {
+      // If the item doesn't exist, add it
+      setCartItems(prev => [...prev, updatedItem]);
+    }
+  };
+
+  // Add item to cart
+  const addToCart = (item) => {
+    if (!item) {
+      return;
+    }
+    
+    // Ensure item has a cartItemId
+    const itemWithId = {
+      ...item,
+      cartItemId: item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    };
+    
+    setCartItems(prev => {
+      // If it's an edit operation (has matching cartItemId), replace the existing item
+      if (itemWithId.cartItemId && prev.some(i => i.cartItemId === itemWithId.cartItemId)) {
+        return prev.map(i => i.cartItemId === itemWithId.cartItemId ? itemWithId : i);
+      }
+      
+      // Otherwise add as new item
+      return [...prev, itemWithId];
+    });
+  };
+
+  // Remove item from cart - updated to support both removal methods
+  const removeFromCart = (itemId, customization, cartItemId) => {
+    // If cartItemId is provided, use that for removal (most reliable)
+    if (cartItemId) {
+      setCartItems(prev => prev.filter(item => item.cartItemId !== cartItemId));
+      return;
+    }
+    
+    // Fallback to using itemId and optional customization
+    setCartItems(prev => {
+      if (!customization || !Array.isArray(customization) || customization.length === 0) {
+        // Remove all instances of this item if no customization is specified
+        return prev.filter(item => item._id !== itemId);
+      }
+      
+      // Otherwise, only remove items that match both ID and customization
+      return prev.filter(item => {
+        if (item._id !== itemId) return true; // Keep items with different IDs
+        
+        // Compare customizations to find a match
+        const itemCustomization = item.customization || [];
+        if (itemCustomization.length !== customization.length) return true;
+        
+        // This is a simplified comparison - a more robust solution would
+        // compare each topping regardless of order
+        const itemToppingIds = itemCustomization.map(t => t._id).sort().join(',');
+        const removeToppingIds = customization.map(t => t._id).sort().join(',');
+        return itemToppingIds !== removeToppingIds;
+      });
+    });
+  };
+
+  // Clear entire cart
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  // Toggle cart visibility
+  const toggleCart = () => {
+    setIsCartOpen(prev => !prev);
+  };
+
+  const value = {
+    cartItems,
+    cartTotal,
+    isCartOpen,
+    addToCart,
+    removeFromCart,
+    clearCart,
+    toggleCart,
+    setIsCartOpen,
+    getFullCartItem,
+    onUpdateCartItem  // Add the new function to the context value
+  };
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
 };

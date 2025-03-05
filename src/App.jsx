@@ -15,13 +15,11 @@ import {
 } from "./pages";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
-import CategoryList from "./components/menu-browsing/CategoryList";
-import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import { MenuProvider } from "./contexts/MenuContext.jsx";
-import ProtectedRoute from "./components/routing/ProtectedRoute";
-import AdminRoute from "./components/routing/AdminRoute";
+import { MenuProvider } from "./contexts/MenuContext";
 import { SnackbarProvider } from "./contexts/SnackbarContext";
 import { FirebaseProvider } from "./contexts/FirebaseContext";
+import { CategoryList } from "./components/menu-browsing";
+import { ErrorBoundary, ProtectedRoute, AdminRoute } from "./components";
 
 function App() {
   return (
@@ -29,8 +27,8 @@ function App() {
       <SnackbarProvider>
         <AuthProvider>
           <FirebaseProvider>
-            <CartProvider>
-              <MenuProvider>
+            <MenuProvider>
+              <CartProvider>
                 <Router>
                   <ErrorBoundary>
                     <Routes>
@@ -62,8 +60,8 @@ function App() {
                     </Routes>
                   </ErrorBoundary>
                 </Router>
-              </MenuProvider>
-            </CartProvider>
+              </CartProvider>
+            </MenuProvider>
           </FirebaseProvider>
         </AuthProvider>
       </SnackbarProvider>

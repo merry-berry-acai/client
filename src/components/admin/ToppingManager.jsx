@@ -7,10 +7,12 @@ import { MenuContext } from '../../contexts/MenuContext';
 import { createTopping, updateTopping, deleteTopping } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
 
-// Import components
-import ToppingTable from './components/ToppingTable';
-import ToppingForm from './components/ToppingForm';
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+// Import components using barrel files
+import { 
+  ToppingTable,
+  ToppingForm,
+  DeleteConfirmationDialog 
+} from './components';
 
 const ToppingManager = () => {
   const { toppings, refreshMenuData, loadingMenu } = useContext(MenuContext);

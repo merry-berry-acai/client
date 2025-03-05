@@ -2,16 +2,31 @@
 export const storeUserPhoto = async (photoURL) => {
   if (photoURL) {
     try {
+      // Check if we already have this photo URL cached
+      const currentPhotoData = getWithExpiry('userPhotoCache');
+      if (currentPhotoData && currentPhotoData.url === photoURL) {
+        // Photo URL hasn't changed, no need to re-fetch
+        return;
+      }
+      
       const response = await fetch(photoURL);
       const blob = await response.blob();
       const reader = new FileReader();
       
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        localStorage.setItem('userPhotoData', base64data);
-      };
-      
-      reader.readAsDataURL(blob);
+      return new Promise((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          // Store with 24 hour expiry (86400000 ms)
+          storeWithExpiry('userPhotoCache', {
+            url: photoURL,
+            data: base64data
+          }, 86400000); 
+          resolve();
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
     } catch (error) {
       console.error('Error storing user photo:', error);
     }
@@ -19,11 +34,12 @@ export const storeUserPhoto = async (photoURL) => {
 };
 
 export const getUserPhoto = () => {
-  return localStorage.getItem('userPhotoData');
+  const photoCache = getWithExpiry('userPhotoCache');
+  return photoCache ? photoCache.data : null;
 };
 
 export const clearUserPhoto = () => {
-  localStorage.removeItem('userPhotoData');
+  removeItem('userPhotoCache');
 };
 
 // Generic localStorage handlers with caching support
@@ -93,7 +109,17 @@ export const getCartFromStorage = () => {
 
 export const saveCartToStorage = (cartItems) => {
   try {
-    localStorage.setItem('simple-cart', JSON.stringify(cartItems));
+    // Store only essential cart data, images will be retrieved from menu context
+    const minimalItems = cartItems.map(item => ({
+      _id: item._id,
+      name: item.name,
+      basePrice: item.basePrice,
+      quantity: item.quantity || 1,
+      customization: item.customization || [],
+      cartItemId: item.cartItemId
+    }));
+    
+    localStorage.setItem('simple-cart', JSON.stringify(minimalItems));
     return true;
   } catch (err) {
     console.error("Failed to save cart to localStorage:", err);
