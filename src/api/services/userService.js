@@ -29,8 +29,8 @@ async function getAuthToken() {
  * @returns {Promise<Object>} - Updated options with auth token
  */
 async function ensureAuthTokenForUserEndpoint(options, providedToken = null) {
-  // Skip if endpoint doesn't start with /users/
-  if (!options.endpoint.startsWith('/users/') && !options.endpoint === '/users') {
+  // Skip if endpoint doesn't start with /users/ or isn't exactly /users
+  if (!options.endpoint.startsWith('/users/') && options.endpoint !== '/users') {
     return options;
   }
   
@@ -131,7 +131,7 @@ export async function checkIsAdmin(uid) {
       retries: 0
     });
 
-    const response = await makeRequest(requestOptions);
+    const response = await apiHandler(requestOptions);
     return response && response.role === 'admin';
   } catch (error) {
     console.error("API admin check failed:", error.message);
