@@ -15,6 +15,7 @@ import { CartContext } from '../contexts/CartContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { makeRequest } from '../api/apiHandler';
 import Layout from '../components/Layout';
+import EducatorNote from '../components/EducatorNote';
 import { 
   CheckoutStepReview, 
   CheckoutStepPayment, 
@@ -25,9 +26,7 @@ const CheckoutPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
   const { currentUser, authToken } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   
-  const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
@@ -36,8 +35,9 @@ const CheckoutPage = () => {
   const [clientSecret, setClientSecret] = useState('');
   const [orderId, setOrderId] = useState('');
   const [paymentIntent, setPaymentIntent] = useState('');
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
   
-  // Add a ref to track if cart was cleared
+  // Track if cart is cleared
   const cartCleared = useRef(false);
   
   const steps = ['Review order', 'Payment', 'Confirmation'];
@@ -61,44 +61,22 @@ const CheckoutPage = () => {
   const { subtotal, tax, total } = calculateTotals();
 
   useEffect(() => {
-    // Check for return status from payment
-    const paymentStatus = searchParams.get('payment_status');
-    
-    if (paymentStatus === 'success' && !cartCleared.current) {
-      setActiveStep(2); // Move to confirmation step
-      clearCart();      // Clear the cart on successful payment
-      cartCleared.current = true; // Mark that we've cleared the cart
-      setLoading(false);
-      return;
-    }
-    
-    if (paymentStatus === 'cancelled') {
-      navigate('/cart');
-      return;
-    }
-    
-    // Reset the cartCleared ref if we're not in success state
-    if (paymentStatus !== 'success') {
-      cartCleared.current = false;
-    }
-    
-    // Don't try to create a checkout session if cart is empty
-    if (!cartItems || cartItems.length === 0) {
+    // Don't try to create a checkout session if cart is empty and we're not in confirmation step
+    if ((!cartItems || cartItems.length === 0) && !paymentCompleted && activeStep !== 2) {
       navigate('/cart');
       return;
     }
     
     // Just set loading to false as we start at review step
     setLoading(false);
-    setActiveStep(0);
-  }, [clearCart, navigate, searchParams, cartItems]);
+  }, [cartItems, navigate, paymentCompleted, activeStep]);
 
   // Event handlers
   const handleBackToCart = () => {
     navigate('/cart');
   };
   
-   const handleSubmitOrder = async (orderData) => {
+  const handleSubmitOrder = async (orderData) => {
     try {
       setLoading(true);
       setError(null);
@@ -108,7 +86,7 @@ const CheckoutPage = () => {
         method: 'post',
         endpoint: '/orders/new',
         data: orderData,
-        authToken: authToken // Use the authToken from AuthContext
+        authToken: authToken
       });
       
       // Extract order ID
@@ -124,7 +102,7 @@ const CheckoutPage = () => {
           currency: 'AUD',
           orderId: orderId
         },
-        authToken: authToken // Use the authToken from AuthContext
+        authToken: authToken
       });
       
       // Access clientSecret
@@ -143,9 +121,6 @@ const CheckoutPage = () => {
       } else {
         throw new Error("Missing client secret from payment intent");
       }
-
-
-      
     } catch (err) {
       console.error("Error processing order:", err);
       setError("There was an error processing your order. Please try again.");
@@ -154,32 +129,39 @@ const CheckoutPage = () => {
     }
   };
   
-  const handlePaymentSuccess = (paymentData) => {
-    // Success, navigate to confirmation
-    console.log('Payment successful:', paymentData);
-    cartCleared.current = true;
-    
-    // First set the active step to confirmation (step 2)
-    setActiveStep(2);
-    
-    // Then record the payment with auth token in header
-    makeRequest({
-      method: 'post',
-      endpoint: '/checkout/payment/store',
-      data: {
-        paymentIntent: paymentData.paymentIntent,
-        orderId: paymentData.orderId
-      },
-      authToken: authToken // Use the authToken from AuthContext
-    }).then(() => {
+  const handlePaymentSuccess = async (paymentData) => {
+    try {
+      console.log('Payment successful:', paymentData);
+      
+      // Set payment as completed
+      setPaymentCompleted(true);
+      
+      // Move to confirmation step
+      setActiveStep(2);
+      
+      // Clear the cart if not already cleared
+      if (!cartCleared.current) {
+        clearCart();
+        cartCleared.current = true;
+      }
+      
+      // Record the payment with auth token in header
+      await makeRequest({
+        method: 'post',
+        endpoint: '/checkout/payment/store',
+        data: {
+          paymentIntent: paymentData.paymentIntent,
+          orderId: paymentData.orderId
+        },
+        authToken: authToken
+      });
+      
       console.log('Payment successfully recorded');
-      // Update URL after recording payment
-      navigate('/checkout?payment_status=success', { replace: true });
-    }).catch(err => {
+    } catch (err) {
       console.error("Error recording payment:", err);
-      // Still update URL even if recording fails
-      navigate('/checkout?payment_status=success', { replace: true });
-    });
+      // Even if recording fails, we still want to show success to the user
+      // as the payment was processed successfully
+    }
   };
   
   const handlePaymentError = (errorMessage) => {
@@ -188,8 +170,22 @@ const CheckoutPage = () => {
   };
   
   const handleSkipToSuccess = () => {
-    cartCleared.current = true;
-    navigate('/checkout?payment_status=success');
+    // For development only - skip to the next step without API calls
+    if (activeStep === 0) {
+      // From Review to Payment
+      setActiveStep(1);
+    } else if (activeStep === 1) {
+      // From Payment to Confirmation
+      setPaymentCompleted(true);
+      
+      // Clear the cart if not already cleared
+      if (!cartCleared.current) {
+        clearCart();
+        cartCleared.current = true;
+      }
+      
+      setActiveStep(2);
+    }
   };
 
   const handleContinueShopping = () => {
@@ -229,6 +225,11 @@ const CheckoutPage = () => {
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}
             onSkipToSuccess={handleSkipToSuccess}
+            cartItems={cartItems}
+            subtotal={subtotal}
+            tax={tax}
+            shipping={0} // You may want to calculate this or pass a real value
+            total={total}
           />
         );
       case 2:
@@ -270,22 +271,14 @@ const CheckoutPage = () => {
         >
           {renderCheckoutStep()}
           
-          {/* Add development notice banner at the bottom when not in confirmation step */}
+          {/* Add educator note banner at the bottom when not in confirmation step */}
           {activeStep !== 2 && (
-            <Box 
-              sx={{ 
-                mt: 4, 
-                p: 1.5, 
-                bgcolor: 'info.main', 
-                color: 'white',
-                borderRadius: 1,
-                opacity: 0.9
-              }}
-            >
-              <Typography variant="body2" align="center">
-                <strong>Development Mode:</strong> This is a mock checkout flow. Use the orange "DEV" buttons to skip steps.
+            <EducatorNote sx={{ mt: 4 }}>
+              <Typography variant="body2">
+                This is a simulated checkout experience for educational purposes. The orange buttons labeled "DEV" 
+                allow you to navigate between checkout steps without processing actual transactions.
               </Typography>
-            </Box>
+            </EducatorNote>
           )}
         </Paper>
       </Container>
