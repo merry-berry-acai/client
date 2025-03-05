@@ -44,3 +44,41 @@ export const ENV_CONFIG = {
   isDevelopment: import.meta.env.VITE_NODE_ENV === 'development',
   nodeEnv: import.meta.env.VITE_NODE_ENV
 };
+
+// Logger Configuration
+export const LOG_CONFIG = {
+  enabled: ENV_CONFIG.isDevelopment,
+  level: import.meta.env.VITE_LOG_LEVEL || 'info',
+  sensitiveKeys: ['password', 'token', 'auth', 'key', 'secret', 'apiKey'],
+  
+  // Configure which types of logs are shown for each component
+  componentConfig: {
+    api: { 
+      showSuccess: false,     // Don't log every successful API call
+      showPayloads: true,     // Show request/response payloads
+      showRetryAttempts: true // Show retry attempts
+    },
+    firebase: {
+      showAuthFlow: true      // Show authentication flow logs
+    }
+  },
+  
+  contextIcons: {
+    api: '🌐',               // Changed to globe for API
+    firebase: '🔥',
+    auth: '🔐',
+    app: '📱',
+    database: '💾',
+    config: '⚙️',
+    default: '📋'            // Changed to clipboard
+  },
+  
+  // More descriptive level names
+  levels: {
+    debug: 0,   // Detailed information for debugging
+    info: 1,    // General information about application flow
+    warn: 2,    // Potential issues that don't halt execution
+    error: 3,   // Errors that affect functionality
+    none: 4     // No logging
+  }
+};
