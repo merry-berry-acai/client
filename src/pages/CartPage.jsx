@@ -26,14 +26,14 @@ const CartPage = () => {
 
   // Calculate order summary values
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => {
+    return cartItems?.reduce((total, item) => {
       // Calculate topping price
       let toppingTotal = 0;
-      if (Array.isArray(item.customization)) {
-        toppingTotal = item.customization.reduce((sum, topping) => sum + (topping.price || 0), 0);
+      if (Array.isArray(item?.customization)) {
+        toppingTotal = item.customization.reduce((sum, topping) => sum + (topping?.price || 0), 0);
       }
-      return total + ((item.basePrice + toppingTotal) * (item.quantity || 1));
-    }, 0);
+      return total + ((item?.basePrice || 0) + toppingTotal) * (item?.quantity || 1);
+    }, 0) || 0;
   };
 
   const subtotal = calculateSubtotal();
@@ -41,7 +41,7 @@ const CartPage = () => {
   const total = subtotal + tax;
   
   // Empty cart state
-  if (cartItems.length === 0) {
+  if (!cartItems?.length) {
     return (
       <Layout>
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -132,8 +132,8 @@ const CartPage = () => {
             </Button>
           </Box>
           
-          {cartItems.map((item, index) => (
-            <CartItem key={`${item._id}-${index}`} item={item} />
+          {cartItems?.map((item, index) => (
+            <CartItem key={`${item?._id}-${index}`} item={item} />
           ))}
         </Grid>
 

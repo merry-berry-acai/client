@@ -1,119 +1,132 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
-import { 
-  Button, Card, CardContent, CardHeader, Typography, 
-  Chip, Box, Avatar, Container, Divider, 
-  Paper
-} from '@mui/material';
-import {
-  User,
-  FileText,
-  Mail,
-  Edit,
-  Clock,
-  Heart
-} from "lucide-react";
+import React, { useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { Container, Box } from '@mui/material';
 import Layout from "../components/Layout";
 import { AuthContext } from '../contexts/AuthContext';
-import { getOrdersByUserId } from '../api/mockApi';
-import { getUserPhoto } from '../utils/localStorage';
+import { getUserOrders } from '../api/apiHandler';
+import { prepareItemsForReorder } from '../utils/orderUtils';
+import { useSnackbar } from '../contexts/SnackbarContext';
+import { getCartFromStorage, saveCartToStorage } from '../utils/localStorage';
+
+// Import the new components
+import ProfileHeader from '../components/profile/ProfileHeader';
+import OrderHistory from '../components/profile/OrderHistory';
+import FavoriteDishes from '../components/profile/FavoriteDishes';
+import SupportSection from '../components/profile/SupportSection';
+
+// Number of orders to display per "page"
+const ORDERS_PER_PAGE = 5;
 
 const Profile = () => {
-  const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
-  const [orders, setOrders] = useState([]);
+  const { showSuccess, showError } = useSnackbar();
+  const [allOrders, setAllOrders] = useState([]); // All orders fetched from API
+  const [displayedOrders, setDisplayedOrders] = useState([]); // Orders currently displayed
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
-  const [favorites] = useState(["Classic Açaí Bowl", "Tropical Smoothie", "Green Energy Smoothie", "Protein Power Bowl"]);
+  const [favorites] = useState([
+    "Classic Açaí Bowl", 
+    "Tropical Smoothie", 
+    "Green Energy Smoothie", 
+    "Protein Power Bowl"
+  ]);
 
-  useEffect(() => {
+  // Sort orders once when they're fetched (most recent first)
+  const sortedOrders = useMemo(() => {
+    if (!allOrders || !Array.isArray(allOrders)) return [];
+    
+    return [...allOrders].sort((a, b) => {
+      // If there's a createdAt field, use it
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      // As a fallback, use the _id (assuming MongoDB IDs which contain a timestamp)
+      else if (a._id && b._id) {
+        return b._id.localeCompare(a._id);
+      }
+      return 0; // keep original order if no sort criteria
+    });
+  }, [allOrders]);
+
+  // Fetch all orders once
+  const fetchAllOrders = useCallback(async () => {
     setLoading(true);
-    getOrdersByUserId(currentUser.uid)
-      .then((data) => {
-        setOrders(Array.isArray(data) ? data : []);  // Ensure we always set an array
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching orders:", err);
-        setError("Failed to load order history");
-        setLoading(false);
-        setOrders([]);
-      });
+    setError(null);
+    
+    try {
+      const data = await getUserOrders(currentUser.uid);
+      setAllOrders(Array.isArray(data) ? data : []);
+      
+      // Initialize with first page of orders
+      loadOrderPage(1, Array.isArray(data) ? data : []);
+      
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      setError("Failed to load order history");
+      setAllOrders([]);
+      setDisplayedOrders([]);
+    } finally {
+      setLoading(false);
+    }
   }, [currentUser]);
 
-  const photoData = getUserPhoto();
-  const defaultPhoto = "/assets/default-user.png";
-  const photoSrc = photoData || currentUser?.photoURL || defaultPhoto;
-  const profileInitial = currentUser?.displayName ? currentUser?.displayName?.charAt(0) : 'U';
+  // Load a specific page of orders from the already fetched data
+  const loadOrderPage = (pageNum, ordersSource = sortedOrders) => {
+    const startIndex = 0;
+    const endIndex = pageNum * ORDERS_PER_PAGE;
+    
+    // Get slice of orders for display
+    const newlyDisplayed = ordersSource.slice(startIndex, endIndex);
+    setDisplayedOrders(newlyDisplayed);
+    
+    // Check if there are more orders to load
+    setHasMore(endIndex < ordersSource.length);
+    setPage(pageNum);
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchAllOrders();
+  }, [currentUser.uid, fetchAllOrders]);
+
+  // Handle loading more orders (infinite scroll)
+  const handleLoadMore = () => {
+    if (loadingMore || !hasMore) return;
+    
+    setLoadingMore(true);
+    
+    // Simulate network delay for smoother UX
+    setTimeout(() => {
+      const nextPage = page + 1;
+      loadOrderPage(nextPage);
+      setLoadingMore(false);
+    }, 300);
+  };
+
+  const handleReorder = (items) => {
+    try {
+      const cartItems = prepareItemsForReorder(items);
+      
+      // Save to localStorage cart or dispatch to cart context
+      const existingCart = getCartFromStorage();
+      saveCartToStorage([...existingCart, ...cartItems]);
+      
+      // Show success message
+      showSuccess('Items added to cart!');
+    } catch (err) {
+      console.error('Error re-ordering items:', err);
+      showError('Failed to add items to cart');
+    }
+  };
 
   return (
     <Layout>
       <Box sx={{ backgroundColor: "#f9fafb", minHeight: "calc(100vh - 64px)" }}>
         <Container sx={{ py: 4 }}>
           {/* Profile Header */}
-          <Paper 
-            elevation={2} 
-            sx={{ 
-              mb: 4, 
-              borderRadius: 2, 
-              overflow: 'hidden',
-              position: 'relative'
-            }}
-          >
-            <Box 
-              sx={{ 
-                height: 100, 
-                bgcolor: 'rgba(128, 0, 128, 0.1)', 
-                position: 'relative'
-              }}
-            />
-            
-            <Box sx={{ px: 3, pb: 3, pt: 6, position: 'relative' }}>
-              <Avatar 
-                sx={{ 
-                  width: 120, 
-                  height: 120, 
-                  border: '4px solid white', 
-                  position: 'absolute',
-                  top: -60,
-                  left: 30,
-                  bgcolor: 'purple',
-                  fontSize: '2.5rem'
-                }}
-                alt={currentUser.displayName}
-                src={photoSrc}
-              >
-                {profileInitial}
-              </Avatar>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: { xs: 0, sm: 18 } }}>
-                <Box>
-                  <Typography variant="h4" fontWeight="medium" gutterBottom>
-                    {currentUser.displayName}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Mail size={16} />
-                    <Typography variant="body2" color="text.secondary">
-                      {currentUser.email}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Button 
-                  variant="outlined" 
-                  startIcon={<Edit size={16} />}
-                  sx={{ 
-                    height: 'fit-content',
-                    color: 'purple',
-                    borderColor: 'purple',
-                    '&:hover': { borderColor: 'darkviolet' }
-                  }}
-                >
-                  Edit Profile
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
+          <ProfileHeader />
           
           {/* Main Content */}
           <Box sx={{ 
@@ -121,165 +134,26 @@ const Profile = () => {
             gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" }, 
             gap: 4 
           }}>
-            {/* Left Column - Order History */}
-            <Card sx={{ borderRadius: 2 }}>
-              <CardHeader 
-                title={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Clock size={20} color="purple" />
-                    <Typography variant="h6">Order History</Typography>
-                  </Box>
-                }
-                sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}
-              />
-              <CardContent>
-                {loading ? (
-                  <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body1" color="text.secondary">Loading order history...</Typography>
-                  </Box>
-                ) : error ? (
-                  <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body1" color="error">{error}</Typography>
-                    <Button 
-                      variant="outlined" 
-                      sx={{ mt: 2, color: 'purple', borderColor: 'purple' }}
-                      onClick={() => {
-                        setLoading(true);
-                        setError(null);
-                        getOrdersByUserId(currentUser.uid)
-                          .then((data) => {
-                            setOrders(data || []);
-                            setLoading(false);
-                          })
-                          .catch(() => {
-                            setError("Failed to load order history");
-                            setLoading(false);
-                          });
-                      }}
-                    >
-                      Try Again
-                    </Button>
-                  </Box>
-                ) : (!orders || orders.length === 0) ? (
-                  <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body1" color="text.secondary">No orders yet</Typography>
-                    <Button 
-                      variant="contained" 
-                      sx={{ 
-                        mt: 2,
-                        bgcolor: 'purple',
-                        '&:hover': { bgcolor: 'darkviolet' }
-                      }}
-                      onClick={() => navigate('/menu')}
-                    >
-                      Browse Menu
-                    </Button>
-                  </Box>
-                ) : (
-                  orders.map((order, index) => (
-                    <React.Fragment key={index}>
-                      <Box sx={{ py: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <Typography variant="subtitle1" fontWeight="medium">
-                            {order?.title || 'Untitled Order'}
-                          </Typography>
-                          <Chip 
-                            label={order?.status || "Completed"} 
-                            size="small" 
-                            sx={{ 
-                              bgcolor: 'rgba(128, 0, 128, 0.1)', 
-                              color: 'purple',
-                              fontWeight: 'medium'
-                            }} 
-                          />
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {order?.period || 'No date available'}
-                        </Typography>
-                        <Typography variant="body2" mt={1}>
-                          {order?.description || 'No description available'}
-                        </Typography>
-                      </Box>
-                      {index < orders.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+            {/* Left Column - Order History with infinite scroll */}
+            <OrderHistory 
+              orders={displayedOrders} 
+              loading={loading}
+              loadingMore={loadingMore}
+              error={error} 
+              onRetry={fetchAllOrders}
+              onReorder={handleReorder}
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              totalOrderCount={sortedOrders.length}
+            />
 
             {/* Right Column */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {/* Favorite Dishes */}
-              <Card sx={{ borderRadius: 2 }}>
-                <CardHeader 
-                  title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Heart size={20} color="purple" />
-                      <Typography variant="h6">Favorite Dishes</Typography>
-                    </Box>
-                  }
-                  sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}
-                />
-                <CardContent>
-                  {favorites.length ? (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {favorites.map((dish, index) => (
-                        <Chip 
-                          key={index} 
-                          label={dish} 
-                          size="medium" 
-                          sx={{ 
-                            bgcolor: 'rgba(128, 0, 128, 0.1)', 
-                            color: 'purple',
-                            '&:hover': { bgcolor: 'rgba(128, 0, 128, 0.2)' } 
-                          }} 
-                        />
-                      ))}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2">No favorites added yet.</Typography>
-                  )}
-                </CardContent>
-              </Card>
+              <FavoriteDishes favorites={favorites} />
 
               {/* Support */}
-              <Card sx={{ borderRadius: 2 }}>
-                <CardHeader 
-                  title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <User size={20} color="purple" />
-                      <Typography variant="h6">Support</Typography>
-                    </Box>
-                  }
-                  sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}
-                />
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Button 
-                    variant="outlined" 
-                    fullWidth 
-                    startIcon={<FileText size={16} />} 
-                    sx={{ 
-                      color: 'purple',
-                      borderColor: 'purple',
-                      '&:hover': { borderColor: 'darkviolet' }
-                    }}
-                  >
-                    Contact Support
-                  </Button>
-                  <Button 
-                    variant="outlined" 
-                    fullWidth 
-                    startIcon={<FileText size={16} />}
-                    sx={{ 
-                      color: 'purple',
-                      borderColor: 'purple',
-                      '&:hover': { borderColor: 'darkviolet' }
-                    }}
-                  >
-                    FAQs & Help
-                  </Button>
-                </CardContent>
-              </Card>
+              <SupportSection />
             </Box>
           </Box>
         </Container>

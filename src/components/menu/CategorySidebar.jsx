@@ -1,6 +1,7 @@
 import React from 'react';
 import { Paper, Typography, List, ListItemButton, ListItemText, Divider, Box, Chip, Zoom } from '@mui/material';
 import SortControl from './SortControl';
+import { toTitleCase } from '../../utils/textFormatters';
 
 const CategorySidebar = ({ selectedCategory, handleSelectCategory, menuItems, categories, sortBy, setSortBy }) => (
   <Paper elevation={2} sx={{ p: 3, height: '100%', position: 'sticky', top: '90px' }}>
@@ -53,7 +54,7 @@ const CategorySidebar = ({ selectedCategory, handleSelectCategory, menuItems, ca
                 },
               }}
             >
-              <ListItemText primary={category.name} />
+              <ListItemText primary={toTitleCase(category.name)} />
               <Chip 
                 size="small" 
                 label={categoryItemCount} 
