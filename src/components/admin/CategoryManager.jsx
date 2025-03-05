@@ -7,10 +7,12 @@ import { MenuContext } from '../../contexts/MenuContext';
 import { createCategory, updateCategory, deleteCategory } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
 
-// Import components
-import CategoryTable from './components/CategoryTable';
-import CategoryForm from './components/CategoryForm';
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+// Import components using barrel files
+import { 
+  CategoryTable, 
+  CategoryForm,
+  DeleteConfirmationDialog 
+} from './components';
 
 const CategoryManager = () => {
   const { categories, refreshMenuData, loadingMenu } = useContext(MenuContext);

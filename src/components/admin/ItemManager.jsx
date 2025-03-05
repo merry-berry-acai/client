@@ -7,10 +7,12 @@ import { MenuContext } from '../../contexts/MenuContext';
 import { createMenuItem, updateMenuItem, deleteMenuItem } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
 
-// Import our new components
-import MenuItemTable from './components/MenuItemTable';
-import MenuItemForm from './components/MenuItemForm';
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+// Import our components using barrel files
+import { 
+  MenuItemTable, 
+  MenuItemForm, 
+  DeleteConfirmationDialog 
+} from './components';
 
 const ItemManager = () => {
   const { menuItems, categories, refreshMenuData, loadingMenu } = useContext(MenuContext);
