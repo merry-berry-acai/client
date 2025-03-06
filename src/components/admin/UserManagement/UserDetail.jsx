@@ -14,47 +14,51 @@ import {
   List, 
   ListItem, 
   ListItemText, 
-  CircularProgress 
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventIcon from '@mui/icons-material/Event';
 import LockIcon from '@mui/icons-material/Lock';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PhoneIcon from '@mui/icons-material/Phone';
+import { fetchUserById } from '../../../api/services/userService';
+import { useApiDebug } from '../common/ApiDebugPanel';
 
 const UserDetail = ({ open, onClose, userId }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { logApiRequest } = useApiDebug();
 
   useEffect(() => {
     if (open && userId) {
       loadUserDetails();
+    } else {
+      // Clear user data when modal closes
+      setUser(null);
     }
   }, [open, userId]);
 
   const loadUserDetails = async () => {
-    // This would fetch user details from your API
-    // For now, it's just a placeholder
     setLoading(true);
+    setError(null);
     try {
-      // const userData = await fetchUserById(userId);
-      // setUser(userData);
+      const apiUrl = `/api/users/${userId}`;
+      logApiRequest('GET', apiUrl);
       
-      // Placeholder:
-      setTimeout(() => {
-        setUser({
-          id: userId,
-          name: 'User Detail Placeholder',
-          email: 'user@example.com',
-          role: 'user',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        });
-        setLoading(false);
-      }, 500);
+      const userData = await fetchUserById(userId);
+      setUser(userData);
+      
+      logApiRequest('GET', apiUrl, null, { userData });
     } catch (err) {
-      setError('Failed to load user details.');
+      const errorMessage = 'Failed to load user details.';
+      setError(errorMessage);
+      console.error(err);
+      
+      logApiRequest('GET', `/api/users/${userId}`, null, null, err.message || errorMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -65,6 +69,18 @@ const UserDetail = ({ open, onClose, userId }) => {
       case 'staff': return '#ff9800';
       default: return '#4caf50';
     }
+  };
+
+  // Format date helper function
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not available';
+    return new Date(dateString).toLocaleString();
+  };
+
+  // Get first letter of name safely
+  const getNameInitial = (name) => {
+    if (!name || typeof name !== 'string') return '?';
+    return name.charAt(0).toUpperCase();
   };
 
   if (loading) {
@@ -81,10 +97,15 @@ const UserDetail = ({ open, onClose, userId }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>User Details</DialogTitle>
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">User Details</Typography>
+          {user && <Typography variant="subtitle2" color="text.secondary">ID: {user._id}</Typography>}
+        </Box>
+      </DialogTitle>
       <DialogContent dividers>
         {error ? (
-          <Typography color="error">{error}</Typography>
+          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         ) : user ? (
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
@@ -97,21 +118,14 @@ const UserDetail = ({ open, onClose, userId }) => {
                     fontSize: '3rem'
                   }}
                 >
-                  {user.name.charAt(0).toUpperCase()}
+                  {getNameInitial(user?.displayName)}
                 </Avatar>
                 <Typography variant="h6" sx={{ mt: 2 }}>
-                  {user.name}
+                  {user.displayName || 'Unnamed User'}
                 </Typography>
                 <Chip
                   label={user.role}
                   color={user.role === 'admin' ? 'error' : user.role === 'staff' ? 'warning' : 'success'}
-                  sx={{ mt: 1 }}
-                />
-                <Chip
-                  icon={<LockIcon />}
-                  label={user.isActive ? 'Active' : 'Inactive'}
-                  color={user.isActive ? 'success' : 'default'}
-                  variant="outlined"
                   sx={{ mt: 1 }}
                 />
               </Box>
@@ -130,36 +144,108 @@ const UserDetail = ({ open, onClose, userId }) => {
                   />
                 </ListItem>
                 <Divider component="li" />
+                
+                {user.phone && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" alignItems="center">
+                            <PhoneIcon sx={{ mr: 1 }} />
+                            <Typography variant="subtitle1">Phone</Typography>
+                          </Box>
+                        }
+                        secondary={user.phone}
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </>
+                )}
+                
                 <ListItem>
                   <ListItemText
                     primary={
                       <Box display="flex" alignItems="center">
                         <EventIcon sx={{ mr: 1 }} />
-                        <Typography variant="subtitle1">Created</Typography>
+                        <Typography variant="subtitle1">Created At</Typography>
                       </Box>
                     }
-                    secondary={new Date(user.createdAt).toLocaleString()}
+                    secondary={formatDate(user.createdAt)}
                   />
                 </ListItem>
                 <Divider component="li" />
+                
                 <ListItem>
                   <ListItemText
                     primary={
                       <Box display="flex" alignItems="center">
                         <EventIcon sx={{ mr: 1 }} />
-                        <Typography variant="subtitle1">Last Login</Typography>
+                        <Typography variant="subtitle1">Updated At</Typography>
                       </Box>
                     }
-                    secondary={new Date(user.lastLogin).toLocaleString()}
+                    secondary={formatDate(user.updatedAt)}
                   />
                 </ListItem>
+                <Divider component="li" />
+                
+                {user.lastLogin && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" alignItems="center">
+                            <EventIcon sx={{ mr: 1 }} />
+                            <Typography variant="subtitle1">Last Login</Typography>
+                          </Box>
+                        }
+                        secondary={formatDate(user.lastLogin)}
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </>
+                )}
+                
+                {user.orderCount !== undefined && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" alignItems="center">
+                            <ShoppingCartIcon sx={{ mr: 1 }} />
+                            <Typography variant="subtitle1">Order Count</Typography>
+                          </Box>
+                        }
+                        secondary={user.orderCount}
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </>
+                )}
+                
+                {user.address && (
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        <Box display="flex" alignItems="center">
+                          <PersonOutlineIcon sx={{ mr: 1 }} />
+                          <Typography variant="subtitle1">Address</Typography>
+                        </Box>
+                      }
+                      secondary={user.address}
+                    />
+                  </ListItem>
+                )}
               </List>
             </Grid>
           </Grid>
         ) : null}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button 
+          onClick={onClose} 
+          color="primary"
+          variant="contained"
+        >
           Close
         </Button>
       </DialogActions>
