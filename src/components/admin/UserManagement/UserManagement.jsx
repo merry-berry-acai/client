@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Paper, Button, Grid, CircularProgress } from '@mui/material';
+import { 
+  Typography, Box, Button, Grid, 
+  CircularProgress, IconButton, Tooltip
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import UserList from './UserList';
 import UserForm from './UserForm';
+import UserDetail from './UserDetail';
+import { useApiDebug } from '../common/ApiDebugPanel';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../../../api/services/userService';
 
 const UserManagement = () => {
+  const { logApiRequest } = useApiDebug();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     loadUsers();
@@ -19,12 +28,19 @@ const UserManagement = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
+      const apiUrl = '/api/users'; // Example URL - adjust as needed
+      logApiRequest('GET', apiUrl);
+      
       const data = await fetchUsers();
       setUsers(data);
       setError(null);
+      
+      logApiRequest('GET', apiUrl, null, { count: data.length, data });
     } catch (err) {
-      setError('Failed to load users. Please try again.');
+      const errorMessage = 'Failed to load users. Please try again.';
+      setError(errorMessage);
       console.error(err);
+      logApiRequest('GET', '/api/users', null, null, err.message || errorMessage);
     } finally {
       setLoading(false);
     }
@@ -40,24 +56,51 @@ const UserManagement = () => {
     setIsFormOpen(true);
   };
 
+  const handleViewUser = (userId) => {
+    setSelectedUserId(userId);
+    setIsDetailOpen(true);
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setCurrentUser(null);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedUserId(null);
   };
 
   const handleSaveUser = async (userData) => {
     setLoading(true);
     try {
       if (currentUser) {
-        await updateUser(currentUser._id, userData);
+        const apiUrl = `/api/users/${currentUser._id}`;
+        logApiRequest('PUT', apiUrl, userData);
+        
+        const response = await updateUser(currentUser._id, userData);
+        logApiRequest('PUT', apiUrl, userData, response);
       } else {
-        await createUser(userData);
+        const apiUrl = '/api/users';
+        logApiRequest('POST', apiUrl, userData);
+        
+        const response = await createUser(userData);
+        logApiRequest('POST', apiUrl, userData, response);
       }
       await loadUsers();
       handleCloseForm();
     } catch (err) {
-      setError(`Failed to ${currentUser ? 'update' : 'create'} user. Please try again.`);
+      const errorMessage = `Failed to ${currentUser ? 'update' : 'create'} user. Please try again.`;
+      setError(errorMessage);
       console.error(err);
+      
+      logApiRequest(
+        currentUser ? 'PUT' : 'POST', 
+        currentUser ? `/api/users/${currentUser._id}` : '/api/users', 
+        userData, 
+        null, 
+        err.message || errorMessage
+      );
     } finally {
       setLoading(false);
     }
@@ -67,11 +110,19 @@ const UserManagement = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setLoading(true);
       try {
-        await deleteUser(userId);
+        const apiUrl = `/api/users/${userId}`;
+        logApiRequest('DELETE', apiUrl);
+        
+        const response = await deleteUser(userId);
+        logApiRequest('DELETE', apiUrl, null, response);
+        
         await loadUsers();
       } catch (err) {
-        setError('Failed to delete user. Please try again.');
+        const errorMessage = 'Failed to delete user. Please try again.';
+        setError(errorMessage);
         console.error(err);
+        
+        logApiRequest('DELETE', `/api/users/${userId}`, null, null, err.message || errorMessage);
       } finally {
         setLoading(false);
       }
@@ -79,10 +130,19 @@ const UserManagement = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Paper sx={{ p: 3, my: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" component="h1">User Management</Typography>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5" component="h1">User Management</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Tooltip title="Refresh Users">
+            <IconButton 
+              onClick={loadUsers} 
+              disabled={loading}
+              sx={{ mr: 1 }}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
           <Button 
             variant="contained" 
             color="primary" 
@@ -93,25 +153,26 @@ const UserManagement = () => {
             Add User
           </Button>
         </Box>
-        
-        {error && (
-          <Box sx={{ my: 2, p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
-            <Typography>{error}</Typography>
-          </Box>
-        )}
-        
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <UserList 
-            users={users} 
-            onEdit={handleEditUser} 
-            onDelete={handleDeleteUser}
-          />
-        )}
-      </Paper>
+      </Box>
+      
+      {error && (
+        <Box sx={{ my: 2, p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
+          <Typography>{error}</Typography>
+        </Box>
+      )}
+      
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <UserList 
+          users={users} 
+          onEdit={handleEditUser} 
+          onDelete={handleDeleteUser}
+          onView={handleViewUser}
+        />
+      )}
       
       <UserForm 
         open={isFormOpen}
@@ -120,7 +181,13 @@ const UserManagement = () => {
         user={currentUser}
         loading={loading}
       />
-    </Container>
+      
+      <UserDetail
+        open={isDetailOpen}
+        onClose={handleCloseDetail}
+        userId={selectedUserId}
+      />
+    </Box>
   );
 };
 
