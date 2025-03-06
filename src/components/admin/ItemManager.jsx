@@ -56,11 +56,15 @@ const ItemManager = () => {
   };
 
   const handleOpenEditDialog = (item) => {
+    // Extract the categoryId correctly based on API response structure
+    // The API might return category as an object with _id or as a string ID
+    const categoryId = item.category?._id || item.category || item.categoryId || '';
+    
     setFormData({
       name: item.name || '',
       description: item.description || '',
       basePrice: item.basePrice ? item.basePrice.toString() : '',
-      categoryId: item.categoryId || '',
+      categoryId: categoryId,
       image: item.image || '',
       details: item.details || '',
       isAvailable: item.isAvailable !== false,
@@ -134,16 +138,34 @@ const ItemManager = () => {
         throw new Error('Price must be a positive number');
       }
       
+      // Transform the data to match the API expectations
       const itemData = {
         ...formData,
-        basePrice: basePrice
+        basePrice: basePrice,
+        // Rename categoryId to category for the API
+        category: formData.categoryId,
       };
       
-      // If we have a new image file, we'd upload it here and get the URL
-      // For this example, we'll assume the image is already a URL string or use a placeholder
-      if (!itemData.image && !imageFile) {
-        // Set a placeholder image if no image provided
-        itemData.image = 'https://via.placeholder.com/300x200?text=No+Image';
+      // Remove the original categoryId field
+      delete itemData.categoryId;
+      
+      // Handle image differently for create vs edit modes
+      if (formMode === 'create') {
+        // For new items, set placeholder if no image and no URL provided
+        if (!itemData.image && !imageFile) {
+          itemData.image = 'https://via.placeholder.com/300x200?text=No+Image';
+        }
+      } else if (formMode === 'edit') {
+        // For edit mode, handle image updates properly
+        if (!imageFile && !formData.image) {
+          // If image was explicitly cleared, send empty string
+          itemData.image = '';
+        } else if (!imageFile && formData.image === currentItem.image) {
+          // If using the original image (no changes), don't include the image field
+          // to avoid unnecessary updates
+          delete itemData.image;
+        }
+        // Otherwise, the new URL from formData.image will be sent
       }
       
       if (formMode === 'create') {
@@ -199,7 +221,11 @@ const ItemManager = () => {
 
   const getCategoryName = (categoryId) => {
     if (!categories) return 'Loading...';
-    const category = categories.find(cat => cat._id === categoryId);
+    
+    // Handle both cases: category might be an ID string or an object with _id
+    const id = typeof categoryId === 'object' ? categoryId._id : categoryId;
+    
+    const category = categories.find(cat => cat._id === id);
     return category ? category.name : 'Uncategorized';
   };
 
@@ -249,7 +275,11 @@ const ItemManager = () => {
 
       {/* Use our new MenuItemTable component */}
       <MenuItemTable 
-        menuItems={menuItems} 
+        menuItems={menuItems.map(item => ({
+          ...item,
+          // Ensure categoryId is available in the expected format for the table component
+          categoryId: item.category?._id || item.category || item.categoryId
+        }))} 
         onEdit={handleOpenEditDialog} 
         onDelete={handleOpenDeleteDialog}
         getCategoryName={getCategoryName}
