@@ -1,22 +1,10 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import { getMenuItems, getCategories, getToppings, getFeaturedItems } from "../api/apiHandler";
-import { storeWithExpiry, getWithExpiry, removeItem } from "../utils/localStorage";
+import { getCacheKey, needsRefresh, updateCache } from "../utils/cacheManager";
+import { CACHE_CONFIG } from "../config";
+import { getWithExpiry } from "../utils/localStorage";
 
 export const MenuContext = createContext();
-
-// Cache configuration
-const CACHE_CONFIG = {
-  storagePrefix: 'menu_cache_',
-  defaultExpiry: 1000 * 60 * 30, // 30 minutes
-  refreshInterval: 1000 * 60 * 5, // 5 minutes - interval for background refresh
-  forceRefreshThreshold: 1000 * 60 * 60, // 60 minutes - when to force refresh on user action
-  keys: {
-    menuItems: 'menuItems',
-    categories: 'categories',
-    toppings: 'toppings',
-    featuredItems: 'featuredItems'
-  }
-};
 
 export const MenuProvider = ({ children }) => {
   const [menuItems, setMenuItems] = useState(null);
@@ -27,27 +15,17 @@ export const MenuProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
 
-  // Helper function to get cache key with prefix
-  const getCacheKey = (key) => `${CACHE_CONFIG.storagePrefix}${key}`;
-
   // Function to fetch data from API and update both state and cache
   const fetchAndCacheData = useCallback(async (forceRefresh = false) => {
     try {
       setError(null);
       
-      // If force refresh is true, remove all cache entries first
-      if (forceRefresh) {
-        Object.values(CACHE_CONFIG.keys).forEach(key => {
-          removeItem(getCacheKey(key));
-        });
-      }
-      
       // Track which items need to be loaded
       let needsLoading = {
-        menuItems: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems)),
-        categories: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories)),
-        toppings: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings)),
-        featuredItems: forceRefresh || !getWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems))
+        menuItems: forceRefresh || needsRefresh('menuItems'),
+        categories: forceRefresh || needsRefresh('categories'),
+        toppings: forceRefresh || needsRefresh('toppings'),
+        featuredItems: forceRefresh || needsRefresh('featuredItems')
       };
       
       // Set loading state only if we need to fetch any data
@@ -58,17 +36,25 @@ export const MenuProvider = ({ children }) => {
       
       // Load cached data first (only if not force refreshing)
       if (!forceRefresh) {
-        Object.keys(needsLoading).forEach(key => {
-          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys[key]));
-          if (cached) {
-            switch(key) {
-              case 'menuItems': setMenuItems(cached); break;
-              case 'categories': setCategories(cached); break;
-              case 'toppings': setToppings(cached); break;
-              case 'featuredItems': setFeaturedItems(cached); break;
-            }
-          }
-        });
+        if (!needsLoading.menuItems) {
+          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems));
+          if (cached) setMenuItems(cached);
+        }
+        
+        if (!needsLoading.categories) {
+          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories));
+          if (cached) setCategories(cached);
+        }
+        
+        if (!needsLoading.toppings) {
+          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings));
+          if (cached) setToppings(cached);
+        }
+        
+        if (!needsLoading.featuredItems) {
+          const cached = getWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems));
+          if (cached) setFeaturedItems(cached);
+        }
       }
       
       // Fetch only what needs refreshing
@@ -78,7 +64,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getMenuItems().then(data => {
             setMenuItems(data);
-            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.menuItems), data, CACHE_CONFIG.defaultExpiry);
+            updateCache('menuItems', data);
           })
         );
       }
@@ -87,7 +73,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getCategories().then(data => {
             setCategories(data);
-            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.categories), data, CACHE_CONFIG.defaultExpiry);
+            updateCache('categories', data);
           })
         );
       }
@@ -96,7 +82,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getToppings().then(data => {
             setToppings(data);
-            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.toppings), data, CACHE_CONFIG.defaultExpiry);
+            updateCache('toppings', data);
           })
         );
       }
@@ -105,7 +91,7 @@ export const MenuProvider = ({ children }) => {
         promises.push(
           getFeaturedItems().then(data => {
             setFeaturedItems(data);
-            storeWithExpiry(getCacheKey(CACHE_CONFIG.keys.featuredItems), data, CACHE_CONFIG.defaultExpiry);
+            updateCache('featuredItems', data);
           })
         );
       }
@@ -123,7 +109,27 @@ export const MenuProvider = ({ children }) => {
     }
   }, []);
 
-  // Function to refresh menu data (can be called manually)
+  // Function to refresh specific menu data type (can be called from admin panels)
+  const refreshMenuDataByType = useCallback((dataType) => {
+    // Map the dataType to the corresponding cache type
+    const cacheTypeMap = {
+      'items': 'menuItems',
+      'categories': 'categories',
+      'toppings': 'toppings',
+      'featured': 'featuredItems'
+    };
+    
+    const cacheType = cacheTypeMap[dataType];
+    if (!cacheType) {
+      console.warn(`Unknown data type for refresh: ${dataType}`);
+      return;
+    }
+    
+    // Set this cache type as needing refresh
+    fetchAndCacheData(false);
+  }, [fetchAndCacheData]);
+
+  // Function to refresh all menu data (can be called manually)
   const refreshMenuData = useCallback(() => {
     fetchAndCacheData(true);
   }, [fetchAndCacheData]);
@@ -150,7 +156,8 @@ export const MenuProvider = ({ children }) => {
       loadingMenu,
       error,
       lastRefresh,
-      refreshMenuData
+      refreshMenuData,
+      refreshMenuDataByType
     }}>
       {children}
     </MenuContext.Provider>
