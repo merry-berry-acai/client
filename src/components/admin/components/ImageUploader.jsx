@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, TextField } from '@mui/material';
+import AppImage from '../../common/AppImage';
 
 const ImageUploader = ({ 
   imagePreview, 
@@ -27,11 +28,14 @@ const ImageUploader = ({
           bgcolor: '#f8f8f8',
         }}
       >
-        {imagePreview ? (
-          <img
-            src={imagePreview}
+        {imagePreview || imageUrl ? (
+          <AppImage
+            src={imagePreview || imageUrl}
             alt="Preview"
-            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
+            sx={{ 
+              maxWidth: '100%', 
+              maxHeight: '100%'
+            }}
           />
         ) : (
           <Typography variant="body2" color="text.secondary">

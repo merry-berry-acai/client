@@ -1,189 +1,156 @@
-import React, { createContext, useCallback } from 'react';
-import { useLocalStorage } from 'react-use';
-import { toast } from "react-toastify";
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { MenuContext } from './MenuContext';
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-	// Use local storage to persist cart data between browser sessions
-	const [cartItems, setCartItems] = useLocalStorage('cart-items', []);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // Fix: Check if MenuContext exists and provide fallback for menuItems
+  const menuContext = useContext(MenuContext);
+  const menuItems = menuContext?.menuItems || [];
+  
+  // Calculate cart total whenever cart items change
+  useEffect(() => {
+    const newTotal = cartItems.reduce((sum, item) => {
+      const itemPrice = parseFloat(item.basePrice || 0);
+      const toppingsPrice = (item.customization || []).reduce(
+        (toppingSum, topping) => toppingSum + (topping.price * (topping.quantity || 1)), 
+        0
+      );
+      return sum + ((itemPrice + toppingsPrice) * item.quantity);
+    }, 0);
+    
+    setCartTotal(parseFloat(newTotal.toFixed(2)));
+  }, [cartItems]);
 
-	// Helper function to normalize customization to always be an array
-	const normalizeCustomization = useCallback((customization) => {
-		if (!customization) return [];
-		if (Array.isArray(customization)) return customization;
-		if (customization.customization && Array.isArray(customization.customization)) return customization.customization;
-		return [];
-	}, []);
+  // Get full cart item with image and other menu data
+  const getFullCartItem = (cartItem) => {
+    // If no item or no menu items available, return the original item
+    if (!cartItem || !menuItems || !menuItems.length) {
+      return cartItem;
+    }
 
-	// Helper function to get a unique key for an item based on ID and customization
-	const getItemKey = useCallback((item, customization) => {
-		const normalizedCustomization = normalizeCustomization(customization);
-		// Sort and stringify the customization to create a consistent key
-		const customizationKey = JSON.stringify(
-			normalizedCustomization
-				.map(c => ({
-					id: c.id || c._id || '',
-					name: c.name || '',
-					quantity: c.quantity || 1,
-					price: parseFloat(c.price || 0)
-				}))
-				.sort((a, b) => a.name.localeCompare(b.name))
-		);
-		
-		return `${item._id || item.id || ''}-${customizationKey}`;
-	}, [normalizeCustomization]);
+    // Try to find the matching menu item
+    const menuItem = menuItems.find(item => item._id === cartItem._id);
+    
+    if (!menuItem) {
+      return cartItem; // If not found, return the original
+    }
+    
+    // Merge the menu item properties with the cart item, prioritizing cart item values for quantities, etc.
+    return {
+      ...menuItem,          // All menu item properties including images
+      ...cartItem,          // Cart-specific properties override menu ones
+      imageUrl: menuItem.imageUrl || cartItem.imageUrl // Ensure we have the image URL
+    };
+  };
 
-	const addToCart = useCallback((item, customization, quantity = 1) => {
-		const normalizedCustomization = normalizeCustomization(customization);
-		const itemKey = getItemKey(item, normalizedCustomization);
-		
-		setCartItems(prevItems => {
-			// Check if an item with same ID and customization already exists
-			const existingItemIndex = prevItems.findIndex(cartItem => 
-				getItemKey(cartItem, cartItem.customization) === itemKey
-			);
-			
-			if (existingItemIndex >= 0) {
-				// Update existing item quantity
-				const updatedItems = [...prevItems];
-				updatedItems[existingItemIndex] = {
-					...updatedItems[existingItemIndex],
-					quantity: (updatedItems[existingItemIndex].quantity || 1) + quantity
-				};
-				toast.success("Item quantity updated in cart!");
-				return updatedItems;
-			} else {
-				// Add as new item
-				toast.success("Item added to cart!");
-				return [...prevItems, { 
-					...item, 
-					customization: normalizedCustomization, 
-						quantity,
-					// Add a unique cart item ID for more reliable tracking
-					cartItemId: `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-				}];
-			}
-		});
-	}, [normalizeCustomization, getItemKey, setCartItems]);
+  // Update an existing cart item (for quantity changes or customization edits)
+  const onUpdateCartItem = (updatedItem) => {
+    if (!updatedItem || !updatedItem.cartItemId) {
+      return;
+    }
+    
+    // First check if the item exists in the cart
+    const exists = cartItems.some(item => item.cartItemId === updatedItem.cartItemId);
+    
+    if (exists) {
+      // If the item exists, update it
+      setCartItems(prev => 
+        prev.map(item => 
+          item.cartItemId === updatedItem.cartItemId ? updatedItem : item
+        )
+      );
+    } else {
+      // If the item doesn't exist, add it
+      setCartItems(prev => [...prev, updatedItem]);
+    }
+  };
 
-	const onUpdateCartItem = useCallback((updatedItem) => {
-		const normalizedCustomization = normalizeCustomization(updatedItem.customization);
-		const updatedItemWithNormalizedCustomization = {
-			...updatedItem,
-			customization: normalizedCustomization,
-			quantity: updatedItem.quantity || 1
-		};
-		
-		setCartItems(prevItems => {
-				// First try to find the item by cartItemId (most reliable)
-				if (updatedItem.cartItemId) {
-					const itemIndex = prevItems.findIndex(item => item.cartItemId === updatedItem.cartItemId);
-					if (itemIndex >= 0) {
-						const newItems = [...prevItems];
-						newItems[itemIndex] = updatedItemWithNormalizedCustomization;
-						toast.success("Cart item updated!");
-						return newItems;
-					}
-				}
-				
-				// If cartItemId match fails or isn't available, try matching by _id
-				const itemIndex = prevItems.findIndex(item => item._id === updatedItem._id);
-				
-				if (itemIndex >= 0) {
-					const newItems = [...prevItems];
-					newItems[itemIndex] = updatedItemWithNormalizedCustomization;
-					toast.success("Cart item updated!");
-					return newItems;
-					}
-					
-					// If we still can't find the item, add it as a new item
-					toast.success("Item added to cart!");
-					return [...prevItems, updatedItemWithNormalizedCustomization];
-				});
-			}, [normalizeCustomization, setCartItems]);
+  // Add item to cart
+  const addToCart = (item) => {
+    if (!item) {
+      return;
+    }
+    
+    // Ensure item has a cartItemId
+    const itemWithId = {
+      ...item,
+      cartItemId: item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    };
+    
+    setCartItems(prev => {
+      // If it's an edit operation (has matching cartItemId), replace the existing item
+      if (itemWithId.cartItemId && prev.some(i => i.cartItemId === itemWithId.cartItemId)) {
+        return prev.map(i => i.cartItemId === itemWithId.cartItemId ? itemWithId : i);
+      }
+      
+      // Otherwise add as new item
+      return [...prev, itemWithId];
+    });
+  };
 
-	const removeFromCart = useCallback((itemId, customization, cartItemId) => {
-		// If we have a cartItemId, use that for exact removal
-		if (cartItemId) {
-			setCartItems(prevItems => {
-				const newItems = prevItems.filter(item => item.cartItemId !== cartItemId);
-				
-				// Only toast if an item was actually removed
-				if (newItems.length < prevItems.length) {
-					toast.success("Item removed from cart!");
-				}
-				
-				return newItems;
-			});
-			return;
-		}
-		
-		// Otherwise use ID and customization
-		const normalizedCustomization = normalizeCustomization(customization);
-		
-		setCartItems(prevItems => {
-			// Create a new array with the item removed
-			const previousLength = prevItems.length;
-			
-			// Make a copy to avoid mutation during filtering
-			const itemsCopy = [...prevItems];
-			
-			// Find the exact index to remove
-			const itemToRemoveIndex = itemsCopy.findIndex(item => {
-				// First check item ID
-				if (item._id !== itemId) return false;
-				
-				// If customization isn't provided, match the first item with this ID
-				if (!customization) return true;
-				
-				// Otherwise, compare customizations using our key function
-				try {
-					const itemKey = getItemKey(item, item.customization);
-					const removeKey = getItemKey({_id: itemId}, normalizedCustomization);
-					return itemKey === removeKey;
-				} catch (err) {
-					console.error("Error comparing item keys:", err);
-					return false;
-				}
-			});
-			
-			// If item not found, return unchanged cart
-			if (itemToRemoveIndex === -1) {
-				console.warn("Item not found for removal:", itemId, normalizedCustomization);
-				return prevItems;
-			}
-			
-			// Create new array without the item
-			const newItems = [
-				...itemsCopy.slice(0, itemToRemoveIndex),
-				...itemsCopy.slice(itemToRemoveIndex + 1)
-			];
-			
-			// Verify the item was actually removed
-			if (newItems.length < previousLength) {
-				toast.success("Item removed from cart!");
-			}
-			
-			return newItems;
-		});
-	}, [normalizeCustomization, getItemKey, setCartItems]);
+  // Remove item from cart - updated to support both removal methods
+  const removeFromCart = (itemId, customization, cartItemId) => {
+    // If cartItemId is provided, use that for removal (most reliable)
+    if (cartItemId) {
+      setCartItems(prev => prev.filter(item => item.cartItemId !== cartItemId));
+      return;
+    }
+    
+    // Fallback to using itemId and optional customization
+    setCartItems(prev => {
+      if (!customization || !Array.isArray(customization) || customization.length === 0) {
+        // Remove all instances of this item if no customization is specified
+        return prev.filter(item => item._id !== itemId);
+      }
+      
+      // Otherwise, only remove items that match both ID and customization
+      return prev.filter(item => {
+        if (item._id !== itemId) return true; // Keep items with different IDs
+        
+        // Compare customizations to find a match
+        const itemCustomization = item.customization || [];
+        if (itemCustomization.length !== customization.length) return true;
+        
+        // This is a simplified comparison - a more robust solution would
+        // compare each topping regardless of order
+        const itemToppingIds = itemCustomization.map(t => t._id).sort().join(',');
+        const removeToppingIds = customization.map(t => t._id).sort().join(',');
+        return itemToppingIds !== removeToppingIds;
+      });
+    });
+  };
 
-	// Add a method to clear the cart
-	const clearCart = useCallback(() => {
-		setCartItems([]);
-		toast.info("Cart has been cleared");
-	}, [setCartItems]);
+  // Clear entire cart
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
-	return (
-		<CartContext.Provider value={{ 
-			cartItems, 
-			addToCart, 
-			onUpdateCartItem, 
-			removeFromCart,
-			clearCart
-		}}>
-			{children}
-		</CartContext.Provider>
-	);
+  // Toggle cart visibility
+  const toggleCart = () => {
+    setIsCartOpen(prev => !prev);
+  };
+
+  const value = {
+    cartItems,
+    cartTotal,
+    isCartOpen,
+    addToCart,
+    removeFromCart,
+    clearCart,
+    toggleCart,
+    setIsCartOpen,
+    getFullCartItem,
+    onUpdateCartItem  // Add the new function to the context value
+  };
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
 };

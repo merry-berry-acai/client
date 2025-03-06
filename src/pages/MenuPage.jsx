@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { MenuContext } from '../contexts/MenuContext';
 import Layout from '../components/Layout';
 import DebugPanel from '../components/DebugPanel';
+import EducatorNote from '../components/EducatorNote';
 import { 
   MenuPageHeader, 
   CategorySidebar, 
@@ -19,10 +20,10 @@ const MenuPage = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  if (menuItems?.length === 0) {
+  if (!menuItems?.length) {
     return <Typography>Loading menu items...</Typography>;
   }
-  if (categories?.length === 0) {
+  if (!categories?.length) {
     return <Typography>Loading categories...</Typography>;
   }
 
@@ -35,30 +36,34 @@ const MenuPage = () => {
     setSelectedCategory(null);
   };
 
+  
+
   // Filter by category and search term
   const filteredItems = menuItems?.filter(item => {
     // Category filter
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+    const matchesCategory = selectedCategory ? item?.category === selectedCategory : true;
     
     // Search filter
     const matchesSearch = searchTerm 
-      ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      ? item?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) || 
+        item?.description?.toLowerCase().includes(searchTerm?.toLowerCase())
       : true;
     
     return matchesCategory && matchesSearch;
   });
 
   const sortItems = (items) => {
+    if (!items?.length) return [];
+    
     switch (sortBy) {
       case 'price-low':
-        return [...items].sort((a, b) => a.basePrice - b.basePrice);
+        return [...items].sort((a, b) => a?.basePrice - b?.basePrice);
       case 'price-high':
-        return [...items].sort((a, b) => b.basePrice - a.basePrice);
+        return [...items].sort((a, b) => b?.basePrice - a?.basePrice);
       case 'name-asc':
-        return [...items].sort((a, b) => a.name.localeCompare(b.name));
+        return [...items].sort((a, b) => a?.name?.localeCompare(b?.name || ''));
       case 'name-desc':
-        return [...items].sort((a, b) => b.name.localeCompare(a.name));
+        return [...items].sort((a, b) => b?.name?.localeCompare(a?.name || ''));
       default:
         return items;
     }
@@ -74,7 +79,20 @@ const MenuPage = () => {
         isDesktop={isDesktop} 
       />
       
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Our Menu
+        </Typography>
+        
+        {/* Educator Note */}
+        <EducatorNote sx={{ mb: 3 }} hideOnMobile={true}>
+          <Typography variant="body2">
+            This menu page demonstrates data fetching from an API with loading states, filtering, 
+            and adding items to cart. Notice how the MenuContext is used to manage category filters 
+            and product data across components.
+          </Typography>
+        </EducatorNote>
+        
         <Box sx={{ py: 4 }}>
           {isDesktop ? (
             // Desktop 2-column layout

@@ -34,17 +34,6 @@ const CategoryForm = ({
               required
               margin="dense"
             />
-            <TextField
-              fullWidth
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={onInputChange}
-              multiline
-              rows={3}
-              margin="dense"
-              placeholder="Description for this category"
-            />
             <Box sx={{ mt: 3 }}>
               <FormControlLabel
                 control={

@@ -2,6 +2,7 @@ import React from 'react';
 import { Paper, Box, Typography, Divider, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import AppImage from '../../common/AppImage';
 
 const ItemPreview = ({ item, basePrice, quantity, incrementQuantity, decrementQuantity }) => {
   return (
@@ -29,14 +30,15 @@ const ItemPreview = ({ item, basePrice, quantity, incrementQuantity, decrementQu
           bgcolor: '#f5f5f5'
         }}
       >
-        <img 
-          src={item.image} 
-          alt={item.name} 
-          style={{ 
-            maxWidth: '100%', 
-            maxHeight: '100%', 
-            objectFit: 'cover' 
-          }} 
+        <AppImage
+          src={item.imageUrl}
+          alt={item.name}
+          fallbackSrc="/assets/default-food.png"
+          sx={{
+            width: '100%',
+            height: 180,
+            borderRadius: 2
+          }}
         />
       </Box>
       

@@ -11,9 +11,8 @@ const CategoryTable = ({ categories, onEdit, onDelete }) => {
       <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-            <TableCell>Image</TableCell>
+            
             <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
             <TableCell>Status</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
@@ -28,24 +27,9 @@ const CategoryTable = ({ categories, onEdit, onDelete }) => {
           ) : (
             categories.map((category) => (
               <TableRow key={category._id} hover>
-                <TableCell>
-                  {category.image ? (
-                    <Box 
-                      component="img"
-                      src={category.image}
-                      alt={category.name}
-                      sx={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 1 }}
-                    />
-                  ) : (
-                    <Box sx={{ width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f0f0f0', borderRadius: 1 }}>
-                      <ImageIcon color="disabled" />
-                    </Box>
-                  )}
-                </TableCell>
+                
                 <TableCell>{category.name}</TableCell>
-                <TableCell sx={{ maxWidth: 300 }}>
-                  <Typography noWrap>{category.description}</Typography>
-                </TableCell>
+               
                 <TableCell>
                   {category.isActive !== false ? (
                     <Box sx={{ 

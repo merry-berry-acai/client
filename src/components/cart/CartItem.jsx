@@ -20,11 +20,17 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CustomizationModal from '../menu-browsing/CustomisationModal';
 import { CartContext } from '../../contexts/CartContext';
+import { MenuContext } from '../../contexts/MenuContext';
+import AppImage from '../common/AppImage';
 
 const CartItem = ({ item, variant }) => {
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [showCustomizations, setShowCustomizations] = useState(false);
-  const { onUpdateCartItem, removeFromCart } = useContext(CartContext);
+  const { onUpdateCartItem, removeFromCart, getFullCartItem } = useContext(CartContext);
+  const { menuItems } = useContext(MenuContext);
+  
+  // Get the full item with image data from menu context
+  const fullItem = getFullCartItem(item);
 
   // Calculate base price and topping total with validation
   let toppingTotal = 0;
@@ -91,6 +97,43 @@ const CartItem = ({ item, variant }) => {
     );
   }
 
+  // Checkout variant (read-only, simplified view)
+  if (variant === 'checkout') {
+    return (
+      <Box sx={{ mb: 2, py: 1 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={3} sm={2}>
+            <AppImage
+              src={fullItem}
+              alt={item.name}
+              fallbackSrc="/assets/default-food.png"
+              sx={{ 
+                width: '100%', 
+                height: '60px',
+                borderRadius: 1
+              }}
+            />
+          </Grid>
+          <Grid item xs={9} sm={10}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body1">{item.name}</Typography>
+              <Typography variant="body1">${totalPrice.toFixed(2)}</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Qty: {quantity}
+            </Typography>
+            {hasCustomizations && (
+              <Typography variant="body2" color="text.secondary">
+                {normalizedCustomization.map(c => c.name).join(', ')}
+              </Typography>
+            )}
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 1 }} />
+      </Box>
+    );
+  }
+
   // Main cart view
   return (
     <Paper 
@@ -105,16 +148,17 @@ const CartItem = ({ item, variant }) => {
       <Grid container spacing={2} alignItems="center">
         {/* Product Image */}
         <Grid item xs={3} sm={2}>
-          <img 
-            src={item.image} 
-            alt={item.name} 
-            style={{ 
+          <AppImage
+            src={fullItem.imageUrl}
+            alt={item.name}
+            fallbackSrc="/assets/default-food.png"
+            sx={{ 
               width: '100%', 
               height: 'auto', 
               borderRadius: 8,
               maxWidth: '100px',
-              objectFit: 'cover' 
-            }} 
+              aspectRatio: '1/1'
+            }}
           />
         </Grid>
         
@@ -290,7 +334,7 @@ const CartItem = ({ item, variant }) => {
         <CustomizationModal 
           open={customModalOpen} 
           onClose={() => setCustomModalOpen(false)} 
-          item={item} 
+          item={fullItem} 
           onAdd={handleCustomisationChange}
           variant="edit" 
         />

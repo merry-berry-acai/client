@@ -49,18 +49,7 @@ const ToppingForm = ({
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="description"
-                label="Description"
-                value={formData.description}
-                onChange={onInputChange}
-                multiline
-                rows={2}
-                fullWidth
-                disabled={loading}
-              />
-            </Grid>
+            
             <Grid item xs={12}>
               <FormControlLabel
                 control={

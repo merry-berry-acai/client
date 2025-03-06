@@ -1,8 +1,9 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { auth } from "../utils/firebase";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { storeUserPhoto, clearUserPhoto, getUserPhoto } from '../utils/localStorage';
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import { auth, getCurrentUserToken } from "../utils/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { storeUserPhoto, clearUserPhoto, getUserPhoto, storeWithExpiry, getWithExpiry, removeItem } from '../utils/localStorage';
 import { checkIsAdmin } from '../api/apiHandler';
+import { AUTH_CONFIG } from "../config";
 
 export const AuthContext = createContext(null);
 
@@ -11,31 +12,20 @@ export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const login = async (email, password) => {
+  const [authToken, setAuthToken] = useState(null);
+  
+  // Function to refresh the auth token
+  const refreshAuthToken = useCallback(async () => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setCurrentUser(userCredential.user);
-      setIsAuthenticated(true);
-      return userCredential.user;
+      const token = await getCurrentUserToken();
+      setAuthToken(token);
+      return token;
     } catch (error) {
-      console.error("Login error:", error.message);
-      throw error;
+      console.error("Failed to refresh auth token", error);
+      return null;
     }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-    } catch (error) {
-      console.error("Logout error:", error.message);
-      throw error;
-    }
-  };
-
+  }, []);
+  
   // Firebase auth integration:
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -46,29 +36,52 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(user);
         setIsAuthenticated(true);
         
-        // Check if user is admin
-        try {
-          console.log("Starting admin status check for:", user.uid);
-          const adminStatus = await checkIsAdmin(user.uid);
-          console.log("Admin status check complete. Result:", adminStatus);
-          setIsAdmin(adminStatus);
-        } catch (error) {
-          console.error("Error in admin check:", error);
-          setIsAdmin(false);
+        // Get the user's token
+        const token = await getCurrentUserToken();
+        setAuthToken(token);
+        
+        // Check if admin status is cached
+        const cachedAdminStatus = getWithExpiry(AUTH_CONFIG.adminCacheKey);
+        if (cachedAdminStatus !== null && cachedAdminStatus.uid === user.uid) {
+          setIsAdmin(cachedAdminStatus.isAdmin);
+          console.log("Using cached admin status:", cachedAdminStatus.isAdmin);
+        } else {
+          // Check admin status from API
+          try {
+            console.log("Starting admin status check for:", user.uid);
+            const adminStatus = await checkIsAdmin(user.uid);
+            console.log("Admin status check complete. Result:", adminStatus);
+            setIsAdmin(adminStatus);
+            
+       
+            storeWithExpiry(AUTH_CONFIG.adminCacheKey, { uid: user.uid, isAdmin: adminStatus }, AUTH_CONFIG.adminCacheExpiry);
+          } catch (error) {
+            console.error("Error in admin check:", error);
+            setIsAdmin(false);
+          }
         }
       } else {
         clearUserPhoto();
+        removeItem(AUTH_CONFIG.adminCacheKey);
         setCurrentUser(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setAuthToken(null);
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
-
+  
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, currentUser, loading, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      isAdmin, 
+      currentUser, 
+      loading,
+      authToken,
+      refreshAuthToken
+    }}>
       {children}
     </AuthContext.Provider>
   );

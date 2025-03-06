@@ -7,10 +7,12 @@ import { MenuContext } from '../../contexts/MenuContext';
 import { createTopping, updateTopping, deleteTopping } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
 
-// Import components
-import ToppingTable from './components/ToppingTable';
-import ToppingForm from './components/ToppingForm';
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+// Import components using barrel files
+import { 
+  ToppingTable,
+  ToppingForm,
+  DeleteConfirmationDialog 
+} from './components';
 
 const ToppingManager = () => {
   const { toppings, refreshMenuData, loadingMenu } = useContext(MenuContext);
@@ -43,10 +45,10 @@ const ToppingManager = () => {
 
   const handleOpenEditDialog = (topping) => {
     setFormData({
-      name: topping.name || '',
-      price: topping.price ? topping.price.toString() : '',
-      description: topping.description || '',
-      isAvailable: topping.isAvailable !== false
+      name: topping?.name || '',
+      price: topping?.price ? topping.price.toString() : '',
+      description: topping?.description || '',
+      isAvailable: topping?.isAvailable !== false
     });
     setCurrentTopping(topping);
     setFormMode('edit');
@@ -127,7 +129,7 @@ const ToppingManager = () => {
   };
 
   const handleDelete = async () => {
-    if (!currentTopping) return;
+    if (!currentTopping?._id) return;
     
     try {
       setLoading(true);
@@ -153,7 +155,7 @@ const ToppingManager = () => {
     setNotification({...notification, open: false});
   };
 
-  if (loadingMenu && (!toppings || toppings.length === 0)) {
+  if (loadingMenu && (!toppings || toppings?.length === 0)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress sx={{ color: 'purple' }} />

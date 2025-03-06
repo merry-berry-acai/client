@@ -1,6 +1,5 @@
 import React from 'react';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useSnackbar } from '../contexts/SnackbarContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Layout from '../components/Layout';
@@ -22,6 +21,8 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 
 const ContactPage = () => {
+  const { showSuccess } = useSnackbar();
+  
   const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
     email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -29,7 +30,7 @@ const ContactPage = () => {
   });
 
   const handleSubmit = (values, { setSubmitting, resetForm }) => {
-    toast.success('Message sent successfully!');
+    showSuccess('Message sent successfully!');
     resetForm();
     setSubmitting(false);
   };
