@@ -1,4 +1,5 @@
-import { makeRequest } from '../apiClient';
+import { makeRequest, getAuthToken } from '../apiClient';
+import { invalidateMenuItemsCache } from '../../utils/cacheManager';
 
 /**
  * Get all menu items
@@ -36,11 +37,22 @@ export async function getItemsInCategory(category) {
  * @param {Object} itemData - The item data to create
  */
 export async function createMenuItem(itemData) {
-  return makeRequest({
-    method: 'post',
-    endpoint: '/items/',
-    data: itemData
-  });
+  const authToken = await getAuthToken();
+  
+  try {
+    const result = await makeRequest({
+      method: 'post',
+      endpoint: '/items/',
+      data: itemData,
+      authToken
+    });
+    
+    // Invalidate menu items cache after successful creation
+    invalidateMenuItemsCache();
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -49,11 +61,22 @@ export async function createMenuItem(itemData) {
  * @param {Object} itemData - The updated item data
  */
 export async function updateMenuItem(id, itemData) {
-  return makeRequest({
-    method: 'put',
-    endpoint: `/items/${id}`,
-    data: itemData
-  });
+  const authToken = await getAuthToken();
+  
+  try {
+    const result = await makeRequest({
+      method: 'patch',
+      endpoint: `/items/${id}`,
+      data: itemData,
+      authToken
+    });
+    
+    // Invalidate menu items cache after successful update
+    invalidateMenuItemsCache();
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -61,8 +84,19 @@ export async function updateMenuItem(id, itemData) {
  * @param {string} id - Item ID to delete
  */
 export async function deleteMenuItem(id) {
-  return makeRequest({
-    method: 'delete',
-    endpoint: `/items/${id}`
-  });
+  const authToken = await getAuthToken();
+  
+  try {
+    const result = await makeRequest({
+      method: 'delete',
+      endpoint: `/items/${id}`,
+      authToken
+    });
+    
+    // Invalidate menu items cache after successful deletion
+    invalidateMenuItemsCache();
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
