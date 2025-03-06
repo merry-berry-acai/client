@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_CONFIG } from "../config";
 import { apiLogger } from "../utils/logger";
+import { auth } from '../firebase/config';  // Add this import for auth
 
 // Create the API handler instance
 const apiHandlerInstance = axios.create({
@@ -52,6 +53,10 @@ apiHandlerInstance.interceptors.response.use(
       apiLogger.error(`API Error ${error.response.status}: ${error.response.data?.message || error.message}`);
       apiLogger.error('Error occurred at:', error.config.url);
       
+      if (error.response.status === 401) {
+        apiLogger.error('Authentication error: Token missing or invalid');
+      }
+      
       if (API_CONFIG.logLevel === 'verbose') {
         apiLogger.error('Error details:', error.response.data);
         apiLogger.error('Original request:', { 
@@ -74,6 +79,22 @@ apiHandlerInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Helper function to get current user's token
+ * @returns {Promise<string|null>} - Auth token or null
+ */
+export async function getAuthToken() {
+  const user = auth.currentUser;
+  if (!user) return null;
+  
+  try {
+    return await user.getIdToken(true);
+  } catch (error) {
+    apiLogger.error("Error getting auth token:", error);
+    return null;
+  }
+}
 
 /**
  * Unified API request function with retry capability
@@ -143,6 +164,9 @@ export async function makeRequest(options) {
           break;
         case 'put':
           response = await apiHandlerInstance.put(endpoint, data, { headers });
+          break;
+        case 'patch':
+          response = await apiHandlerInstance.patch(endpoint, data, { headers });
           break;
         case 'delete':
           response = await apiHandlerInstance.delete(endpoint, { headers });
