@@ -20,7 +20,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 
-const UserList = ({ users, onEdit, onDelete }) => {
+const UserList = ({ users, onEdit, onDelete, onView }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -51,7 +51,7 @@ const UserList = ({ users, onEdit, onDelete }) => {
               <TableCell>User</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Status</TableCell>
+             
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -64,10 +64,10 @@ const UserList = ({ users, onEdit, onDelete }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar 
                         src={user.profileImage} 
-                        alt={user.name} 
+                        alt={user.displayName} 
                         sx={{ mr: 2, width: 40, height: 40 }}
                       />
-                      {user.name || 'N/A'}
+                      {user.displayName || 'N/A'}
                     </Box>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -78,26 +78,10 @@ const UserList = ({ users, onEdit, onDelete }) => {
                       color={getRoleColor(user.role)}
                     />
                   </TableCell>
-                  <TableCell>
-                    {user.isActive ? (
-                      <Chip 
-                        icon={<LockOpenIcon />} 
-                        label="Active" 
-                        size="small" 
-                        color="success"
-                      />
-                    ) : (
-                      <Chip 
-                        icon={<LockIcon />} 
-                        label="Inactive" 
-                        size="small"
-                        color="default"
-                      />
-                    )}
-                  </TableCell>
+                  
                   <TableCell align="right">
                     <Tooltip title="View Details">
-                      <IconButton size="small" sx={{ mr: 1 }}>
+                      <IconButton size="small" sx={{ mr: 1 }} onClick={() => onView(user._id)}>
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
