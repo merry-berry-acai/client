@@ -45,6 +45,21 @@ export const ENV_CONFIG = {
   nodeEnv: import.meta.env.VITE_NODE_ENV
 };
 
+// Cache Configuration
+export const CACHE_CONFIG = {
+  storagePrefix: 'menu_cache_',
+  defaultExpiry: 1000 * 60 * 30, // 30 minutes
+  refreshInterval: 1000 * 60 * 5, // 5 minutes - interval for background refresh
+  forceRefreshThreshold: 1000 * 60 * 60, // 60 minutes - when to force refresh on user action
+  keys: {
+    menuItems: 'menuItems',
+    categories: 'categories',
+    toppings: 'toppings',
+    featuredItems: 'featuredItems',
+    users: 'users'
+  }
+};
+
 // Logger Configuration
 export const LOG_CONFIG = {
   enabled: ENV_CONFIG.isDevelopment,
