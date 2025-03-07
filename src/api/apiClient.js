@@ -184,9 +184,8 @@ export async function makeRequest(options) {
         throw new Error("Response validation failed");
       }
       
-      return response.data.data || response.data;
-    } 
-    catch (error) {
+      return response.data?.data || response.data || response;
+    } catch (error) {
       lastError = error;
       
       // Don't log all error details except in specific cases
