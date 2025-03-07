@@ -11,6 +11,17 @@ signInWithEmailAndPassword,
 signInWithPopup, 
 signOut 
 } from './firebase';
+import { setSnackbarFunctions } from '../firebase/notifications';
+
+// Mock react-toastify
+vi.mock('react-toastify', () => {
+return {
+    toast: {
+        success: vi.fn().mockImplementation(() => {}),
+        error: vi.fn().mockImplementation(() => {})
+    }
+};
+});
 
 // Mock Firebase auth
 vi.mock('firebase/auth', () => {
@@ -21,17 +32,7 @@ return {
     createUserWithEmailAndPassword: vi.fn(),
     signInWithEmailAndPassword: vi.fn(),
     signInWithPopup: vi.fn(),
-    signOut: vi.fn()
-};
-});
-
-// Mock react-toastify
-vi.mock('react-toastify', () => {
-return {
-    toast: {
-        success: vi.fn(),
-        error: vi.fn()
-    }
+    signOut: vi.fn().mockResolvedValue()
 };
 });
 
@@ -42,11 +43,14 @@ signInWithPopup,
 signOut 
 } from 'firebase/auth';
 
+vi.useFakeTimers();
+
 describe('Firebase Auth Utilities', () => {
 const mockNavigate = vi.fn();
 
 beforeEach(() => {
     vi.clearAllMocks();
+    setSnackbarFunctions(toast);
 });
 
 describe('signUp', () => {
