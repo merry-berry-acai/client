@@ -1,3 +1,4 @@
+import React, { useContext } from 'react';
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
