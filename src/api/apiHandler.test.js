@@ -1,142 +1,197 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock the dependencies
+vi.mock('./apiClient', () => ({
+  makeRequest: vi.fn(),
+  apiHandler: vi.fn(),
+  apiHandlerInstance: { test: 'test' },
+  API_CONFIG: { baseURL: 'test' }
+}));
+
+vi.mock('./services/menuService', () => ({
+  getMenuItems: vi.fn(),
+  getFeaturedItems: vi.fn(),
+  getItemsInCategory: vi.fn(),
+  createMenuItem: vi.fn(),
+  updateMenuItem: vi.fn(),
+  deleteMenuItem: vi.fn()
+}));
+
+vi.mock('./services/categoryService', () => ({
+  getCategories: vi.fn(),
+  createCategory: vi.fn(),
+  updateCategory: vi.fn(),
+  deleteCategory: vi.fn()
+}));
+
+vi.mock('./services/toppingService', () => ({
+  getToppings: vi.fn(),
+  createTopping: vi.fn(),
+  updateTopping: vi.fn(),
+  deleteTopping: vi.fn()
+}));
+
+vi.mock('./services/userService', () => ({
+  sendUserToDB: vi.fn(),
+  checkIsAdmin: vi.fn(),
+  getUserOrders: vi.fn()
+}));
+
+// Import the mocked originals for comparison
+import * as menuServiceMock from './services/menuService';
+import * as categoryServiceMock from './services/categoryService';
+import * as toppingServiceMock from './services/toppingService';
+import * as userServiceMock from './services/userService';
+import { makeRequest, apiHandler, apiHandlerInstance, API_CONFIG } from './apiClient';
+
+// Import the module after mocking its dependencies
 import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeAll,
-  afterEach,
-  afterAll,
-} from "vitest";
-import { makeRequest, clearCache, API_CONFIG } from "./apiHandler";
-import { setupServer } from "msw/node";
-import { rest } from "msw";
+  // menu service exports
+  getMenuItems, getFeaturedItems, getItemsInCategory,
+  createMenuItem, updateMenuItem, deleteMenuItem,
+  
+  // category service exports
+  getCategories, createCategory, updateCategory, deleteCategory,
+  
+  // topping service exports
+  getToppings, createTopping, updateTopping, deleteTopping,
+  
+  // user service exports
+  sendUserToDB, checkIsAdmin, getUserOrders,
+  
+  // core API utilities
+} from './apiHandler';
 
-const server = setupServer(
-  rest.get(`${API_CONFIG.baseURL}/items/`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json([{ id: 1, name: "Acai Bowl" }]));
-  }),
-
-  rest.post(`${API_CONFIG.baseURL}/items/`, (req, res, ctx) => {
-    return res(ctx.status(201), ctx.json({ id: 2, name: req.body.name }));
-  }),
-
-  rest.put(`${API_CONFIG.baseURL}/items/:id`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json({ id: req.params.id, ...req.body }));
-  }),
-
-  rest.delete(`${API_CONFIG.baseURL}/items/:id`, (req, res, ctx) => {
-    return res(ctx.status(204), ctx.json(null));
-  }),
-
-  rest.get(`${API_CONFIG.baseURL}/fail`, (req, res, ctx) => {
-    return res(ctx.status(500), ctx.json({ message: "Server Error" }));
-  })
-);
-
-beforeAll(() => server.listen());
-afterEach(() => {
-  server.resetHandlers();
-  clearCache();
-  vi.restoreAllMocks();
-});
-afterAll(() => server.close());
-
-describe("makeRequest API Utility", () => {
-  it("should fetch menu items successfully", async () => {
-    const data = await makeRequest({
-      method: "get",
-      endpoint: "/items/",
-      cacheKey: "menuItems",
-    });
-
-    expect(data).toEqual([{ id: 1, name: "Acai Bowl" }]);
+describe('apiHandler.js', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
-
-  it("should use cache for GET requests", async () => {
-    await makeRequest({
-      method: "get",
-      endpoint: "/items/",
-      cacheKey: "menuItems",
+  
+  describe('menu service re-exports', () => {
+    it('should correctly re-export getMenuItems function', () => {
+      const testArg = { test: 'value' };
+      getMenuItems(testArg);
+      expect(menuServiceMock.getMenuItems).toHaveBeenCalledWith(testArg);
+      expect(getMenuItems).toBe(menuServiceMock.getMenuItems);
     });
-
-    server.use(
-      rest.get(`${API_CONFIG.baseURL}/items/`, (req, res, ctx) => {
-        return res(ctx.status(500));
-      })
-    );
-
-    const data = await makeRequest({
-      method: "get",
-      endpoint: "/items/",
-      cacheKey: "menuItems",
+    
+    it('should correctly re-export getFeaturedItems function', () => {
+      const testArg = { test: 'value' };
+      getFeaturedItems(testArg);
+      expect(menuServiceMock.getFeaturedItems).toHaveBeenCalledWith(testArg);
+      expect(getFeaturedItems).toBe(menuServiceMock.getFeaturedItems);
     });
-    expect(data).toEqual([{ id: 1, name: "Acai Bowl" }]);
-  });
-
-  it("should create a new menu item", async () => {
-    const newItem = { name: "Berry Smoothie" };
-    const data = await makeRequest({
-      method: "post",
-      endpoint: "/items/",
-      data: newItem,
+    
+    it('should correctly re-export getItemsInCategory function', () => {
+      const testCategory = 'pizza';
+      getItemsInCategory(testCategory);
+      expect(menuServiceMock.getItemsInCategory).toHaveBeenCalledWith(testCategory);
+      expect(getItemsInCategory).toBe(menuServiceMock.getItemsInCategory);
     });
-
-    expect(data).toEqual({ id: 2, name: "Berry Smoothie" });
-  });
-
-  it("should update a menu item", async () => {
-    const updatedItem = { name: "Updated Acai Bowl" };
-    const data = await makeRequest({
-      method: "put",
-      endpoint: "/items/1",
-      data: updatedItem,
+    
+    it('should correctly re-export createMenuItem function', () => {
+      const testItem = { name: 'Pizza', price: 10 };
+      createMenuItem(testItem);
+      expect(menuServiceMock.createMenuItem).toHaveBeenCalledWith(testItem);
+      expect(createMenuItem).toBe(menuServiceMock.createMenuItem);
     });
-
-    expect(data).toEqual({ id: "1", name: "Updated Acai Bowl" });
-  });
-
-  it("should delete a menu item", async () => {
-    const result = await makeRequest({
-      method: "delete",
-      endpoint: "/items/1",
+    
+    it('should correctly re-export updateMenuItem function', () => {
+      const id = '123';
+      const testItem = { name: 'Updated Pizza' };
+      updateMenuItem(id, testItem);
+      expect(menuServiceMock.updateMenuItem).toHaveBeenCalledWith(id, testItem);
+      expect(updateMenuItem).toBe(menuServiceMock.updateMenuItem);
     });
-
-    expect(result).toBe(null);
+    
+    it('should correctly re-export deleteMenuItem function', () => {
+      const id = '123';
+      deleteMenuItem(id);
+      expect(menuServiceMock.deleteMenuItem).toHaveBeenCalledWith(id);
+      expect(deleteMenuItem).toBe(menuServiceMock.deleteMenuItem);
+    });
   });
-
-  it("should retry failed requests up to configured retries", async () => {
-    const consoleWarnSpy = vi.spyOn(console, "warn");
-
-    server.use(
-      rest.get(`${API_CONFIG.baseURL}/fail`, (req, res, ctx) => {
-        return res(ctx.status(500), ctx.json({ message: "Server Error" }));
-      })
-    );
-
-    await expect(
-      makeRequest({ method: "get", endpoint: "/fail" })
-    ).rejects.toThrow();
-
-    expect(consoleWarnSpy.mock.calls.length).toBe(API_CONFIG.retries);
-
-    consoleWarnSpy.mockRestore();
+  
+  describe('category service re-exports', () => {
+    it('should correctly re-export getCategories function', () => {
+      getCategories();
+      expect(categoryServiceMock.getCategories).toHaveBeenCalled();
+      expect(getCategories).toBe(categoryServiceMock.getCategories);
+    });
+    
+    it('should correctly re-export createCategory function', () => {
+      const testCategory = { name: 'Desserts' };
+      createCategory(testCategory);
+      expect(categoryServiceMock.createCategory).toHaveBeenCalledWith(testCategory);
+      expect(createCategory).toBe(categoryServiceMock.createCategory);
+    });
+    
+    it('should correctly re-export updateCategory function', () => {
+      const id = '123';
+      const testCategory = { name: 'Updated Desserts' };
+      updateCategory(id, testCategory);
+      expect(categoryServiceMock.updateCategory).toHaveBeenCalledWith(id, testCategory);
+      expect(updateCategory).toBe(categoryServiceMock.updateCategory);
+    });
+    
+    it('should correctly re-export deleteCategory function', () => {
+      const id = '123';
+      deleteCategory(id);
+      expect(categoryServiceMock.deleteCategory).toHaveBeenCalledWith(id);
+      expect(deleteCategory).toBe(categoryServiceMock.deleteCategory);
+    });
   });
-
-  it("should not retry on 4xx client errors", async () => {
-    const consoleWarnSpy = vi.spyOn(console, "warn");
-
-    server.use(
-      rest.get(`${API_CONFIG.baseURL}/fail`, (req, res, ctx) => {
-        return res(ctx.status(400), ctx.json({ message: "Bad Request" }));
-      })
-    );
-
-    await expect(
-      makeRequest({ method: "get", endpoint: "/fail" })
-    ).rejects.toThrow();
-
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
-
-    consoleWarnSpy.mockRestore();
+  
+  describe('topping service re-exports', () => {
+    it('should correctly re-export getToppings function', () => {
+      getToppings();
+      expect(toppingServiceMock.getToppings).toHaveBeenCalled();
+      expect(getToppings).toBe(toppingServiceMock.getToppings);
+    });
+    
+    it('should correctly re-export createTopping function', () => {
+      const testTopping = { name: 'Cheese' };
+      createTopping(testTopping);
+      expect(toppingServiceMock.createTopping).toHaveBeenCalledWith(testTopping);
+      expect(createTopping).toBe(toppingServiceMock.createTopping);
+    });
+    
+    it('should correctly re-export updateTopping function', () => {
+      const id = '123';
+      const testTopping = { name: 'Extra Cheese' };
+      updateTopping(id, testTopping);
+      expect(toppingServiceMock.updateTopping).toHaveBeenCalledWith(id, testTopping);
+      expect(updateTopping).toBe(toppingServiceMock.updateTopping);
+    });
+    
+    it('should correctly re-export deleteTopping function', () => {
+      const id = '123';
+      deleteTopping(id);
+      expect(toppingServiceMock.deleteTopping).toHaveBeenCalledWith(id);
+      expect(deleteTopping).toBe(toppingServiceMock.deleteTopping);
+    });
+  });
+  
+  describe('user service re-exports', () => {
+    it('should correctly re-export sendUserToDB function', () => {
+      const testUser = { name: 'John Doe' };
+      sendUserToDB(testUser);
+      expect(userServiceMock.sendUserToDB).toHaveBeenCalledWith(testUser);
+      expect(sendUserToDB).toBe(userServiceMock.sendUserToDB);
+    });
+    
+    it('should correctly re-export checkIsAdmin function', () => {
+      const testUser = { name: 'John Doe' };
+      checkIsAdmin(testUser);
+      expect(userServiceMock.checkIsAdmin).toHaveBeenCalledWith(testUser);
+      expect(checkIsAdmin).toBe(userServiceMock.checkIsAdmin);
+    });
+    
+    it('should correctly re-export getUserOrders function', () => {
+      const testUser = { name: 'John Doe' };
+      getUserOrders(testUser);
+      expect(userServiceMock.getUserOrders).toHaveBeenCalledWith(testUser);
+      expect(getUserOrders).toBe(userServiceMock.getUserOrders);
+    });
   });
 });
