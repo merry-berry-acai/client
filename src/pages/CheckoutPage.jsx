@@ -89,6 +89,8 @@ const CheckoutPage = () => {
         authToken: authToken
       });
       
+      console.log("orderResponse:", orderResponse);
+      
       // Extract order ID
       const orderId = orderResponse?.order?._id;
       setOrderId(orderId);
