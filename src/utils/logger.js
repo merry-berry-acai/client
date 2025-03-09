@@ -3,6 +3,7 @@
  * Uses centralized configuration from config.js
  */
 import { LOG_CONFIG, ENV_CONFIG } from '../config';
+import * as Sentry from "@sentry/react";
 
 /**
  * Format current timestamp for logging
