@@ -27,6 +27,7 @@ export function getFullImageUrl(imageUrl) {
     
   } catch (error) {
     console.error('Error generating image URL:', error);
+    appLogger.error('Error generating image URL', error);
     return null;
   }
 }

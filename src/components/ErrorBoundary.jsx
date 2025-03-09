@@ -46,7 +46,7 @@ class ErrorBoundary extends Component {
   logErrorToService(error, errorInfo) {
     // Implementation for your error reporting service
     // Example: Sentry, LogRocket, etc.
-    // Sentry.captureException(error, { extra: errorInfo });
+    Sentry.captureException(error, { extra: errorInfo });
   }
 
   handleRefresh = () => {

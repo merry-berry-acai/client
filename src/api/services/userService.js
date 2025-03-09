@@ -122,6 +122,12 @@ export async function checkIsAdmin(uid) {
     return response && response.role === 'admin';
   } catch (error) {
     console.error("API admin check failed:", error.message);
+    Sentry.captureException(error, { 
+      extra: { 
+        action: "checkIsAdmin", 
+        userId: uid 
+      } 
+    });
     return uid === ADMIN_UID;
   }
 }
@@ -145,6 +151,12 @@ export async function getUserOrders(uid, authToken) {
     return await apiHandler(requestOptions);
   } catch (error) {
     console.error('Error fetching user orders:', error);
+    Sentry.captureException(error, { 
+      extra: { 
+        action: "getUserOrders", 
+        userId: uid 
+      } 
+    });
     throw error;
   }
 }
@@ -167,6 +179,11 @@ export async function fetchUsers() {
     return await apiHandler(requestOptions);
   } catch (error) {
     log.error('Error fetching users:', error);
+    Sentry.captureException(error, { 
+      extra: { 
+        action: "fetchUsers"
+      } 
+    });
     throw error;
   }
 }

@@ -22,6 +22,7 @@ export const extractDateFromOrderId = (orderId) => {
     return date;
   } catch (e) {
     console.error('Error extracting date from order ID:', e);
+    appLogger.error('Error extracting date from order ID', e);
     return null;
   }
 };

@@ -233,7 +233,7 @@ export const apiHandler = async (options) => {
     // Fallback to entire response if no standard structure found
     return response;
   } catch (error) {
-    console.error(`API request failed: ${options.endpoint}`, error);
+    apiLogger.error(`API request failed: ${options.endpoint}`, error);
     throw error;
   }
 };

@@ -123,6 +123,11 @@ const CheckoutPage = () => {
       }
     } catch (err) {
       console.error("Error processing order:", err);
+      Sentry.captureException(err, { 
+        extra: { 
+          action: "handleSubmitOrder"
+        } 
+      });
       setError("There was an error processing your order. Please try again.");
     } finally {
       setLoading(false);
@@ -159,6 +164,11 @@ const CheckoutPage = () => {
       console.log('Payment successfully recorded');
     } catch (err) {
       console.error("Error recording payment:", err);
+      Sentry.captureException(err, { 
+        extra: { 
+          action: "handlePaymentSuccess"
+        } 
+      });
       // Even if recording fails, we still want to show success to the user
       // as the payment was processed successfully
     }

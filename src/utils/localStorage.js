@@ -29,6 +29,7 @@ export const storeUserPhoto = async (photoURL) => {
       });
     } catch (error) {
       console.error('Error storing user photo:', error);
+      appLogger.error('Error storing user photo', error);
     }
   }
 };
@@ -54,6 +55,7 @@ export const storeWithExpiry = (key, data, expiryMs = null) => {
     return true;
   } catch (err) {
     console.error(`Failed to store ${key} in localStorage:`, err);
+    appLogger.error(`Failed to store ${key} in localStorage`, err);
     return false;
   }
 };
@@ -82,6 +84,7 @@ export const getWithExpiry = (key, forceRefresh = false, refreshThreshold = null
     return item.data;
   } catch (err) {
     console.error(`Failed to retrieve ${key} from localStorage:`, err);
+    appLogger.error(`Failed to retrieve ${key} from localStorage`, err);
     return null;
   }
 };
@@ -92,6 +95,7 @@ export const removeItem = (key) => {
     return true;
   } catch (err) {
     console.error(`Failed to remove ${key} from localStorage:`, err);
+    appLogger.error(`Failed to remove ${key} from localStorage`, err);
     return false;
   }
 };
@@ -103,6 +107,7 @@ export const getCartFromStorage = () => {
     return savedCart ? JSON.parse(savedCart) : [];
   } catch (err) {
     console.error("Failed to load cart from localStorage:", err);
+    appLogger.error("Failed to load cart from localStorage", err);
     return [];
   }
 };
@@ -123,6 +128,7 @@ export const saveCartToStorage = (cartItems) => {
     return true;
   } catch (err) {
     console.error("Failed to save cart to localStorage:", err);
+    appLogger.error("Failed to save cart to localStorage", err);
     return false;
   }
 };

@@ -64,6 +64,12 @@ const Profile = () => {
       
     } catch (err) {
       console.error("Error fetching orders:", err);
+      Sentry.captureException(err, { 
+        extra: { 
+          action: "fetchAllOrders", 
+          userId: currentUser.uid 
+        } 
+      });
       setError("Failed to load order history");
       setAllOrders([]);
       setDisplayedOrders([]);
@@ -117,6 +123,11 @@ const Profile = () => {
       showSuccess('Items added to cart!');
     } catch (err) {
       console.error('Error re-ordering items:', err);
+      Sentry.captureException(err, { 
+        extra: { 
+          action: "handleReorder"
+        } 
+      });
       showError('Failed to add items to cart');
     }
   };
