@@ -1,168 +1,51 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { toast } from 'react-toastify';
-import {
-auth, 
-signIn, 
-signUp, 
-signOutUser, 
-handleGoogleSignIn,
-createUserWithEmailAndPassword, 
-signInWithEmailAndPassword, 
-signInWithPopup, 
-signOut 
-} from './firebase';
-import { setSnackbarFunctions } from '../firebase/notifications';
+import * as firebaseAuth from '../firebase/auth';
+import * as utilsFirebase from './firebase';
 
-// Mock react-toastify
-vi.mock('react-toastify', () => {
-return {
-    toast: {
-        success: vi.fn().mockImplementation(() => {}),
-        error: vi.fn().mockImplementation(() => {})
-    }
-};
-});
+vi.mock('../firebase/auth', () => ({
+  auth: { mockAuth: true },
+  signIn: vi.fn(),
+  signUp: vi.fn(),
+  signOutUser: vi.fn(),
+  handleGoogleSignIn: vi.fn(),
+  getCurrentUserToken: vi.fn(),
+  setupAuthStateListener: vi.fn()
+}));
 
-// Mock Firebase auth
-vi.mock('firebase/auth', () => {
-return {
-    getAuth: vi.fn(() => ({})),
-    onAuthStateChanged: vi.fn(),
-    GoogleAuthProvider: vi.fn(() => ({})),
-    createUserWithEmailAndPassword: vi.fn(),
-    signInWithEmailAndPassword: vi.fn(),
-    signInWithPopup: vi.fn(),
-    signOut: vi.fn().mockResolvedValue()
-};
-});
-
-import {
-createUserWithEmailAndPassword, 
-signInWithEmailAndPassword, 
-signInWithPopup, 
-signOut 
-} from 'firebase/auth';
-
-vi.useFakeTimers();
-
-describe('Firebase Auth Utilities', () => {
-const mockNavigate = vi.fn();
-
-beforeEach(() => {
+describe('utils/firebase', () => {
+  afterEach(() => {
     vi.clearAllMocks();
-    setSnackbarFunctions(toast);
-});
+  });
 
-describe('signUp', () => {
-    it('should call createUserWithEmailAndPassword with correct parameters', () => {
-        // Act
-        signUp('test@example.com', 'password123', mockNavigate);
-        
-        // Assert
-        expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
-            auth, 'test@example.com', 'password123'
-        );
-    });
+  it('should re-export auth from firebase/auth', () => {
+    expect(utilsFirebase.auth).toEqual({ mockAuth: true });
+  });
 
-    it('should show success toast and navigate to profile on success', async () => {
-        // Arrange
-        const mockUser = { uid: '123' };
-        createUserWithEmailAndPassword.mockResolvedValueOnce({ 
-            user: mockUser 
-        });
-        
-        // Act
-        signUp('test@example.com', 'password123', mockNavigate);
-        
-        // Wait for promises
-        await vi.runAllTimersAsync();
-        
-        // Assert
-        expect(toast.success).toHaveBeenCalledWith('Sign Up Successful!');
-        expect(setTimeout).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('/profile');
-    });
+  it('should re-export signIn from firebase/auth', () => {
+    utilsFirebase.signIn();
+    expect(firebaseAuth.signIn).toHaveBeenCalled();
+  });
 
-    it('should handle errors properly', async () => {
-        // Arrange
-        const mockError = new Error('Auth error');
-        mockError.code = 'auth/email-already-in-use';
-        createUserWithEmailAndPassword.mockRejectedValueOnce(mockError);
-        
-        // Act
-        signUp('test@example.com', 'password123', mockNavigate);
-        
-        // Wait for promises
-        await vi.runAllTimersAsync();
-        
-        // Assert
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-});
+  it('should re-export signUp from firebase/auth', () => {
+    utilsFirebase.signUp();
+    expect(firebaseAuth.signUp).toHaveBeenCalled();
+  });
 
-describe('signIn', () => {
-    it('should call signInWithEmailAndPassword with correct parameters', () => {
-        // Act
-        signIn('test@example.com', 'password123', mockNavigate);
-        
-        // Assert
-        expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
-            auth, 'test@example.com', 'password123'
-        );
-    });
+  it('should re-export signOutUser from firebase/auth', () => {
+    utilsFirebase.signOutUser();
+    expect(firebaseAuth.signOutUser).toHaveBeenCalled();
+  });
 
-    it('should show success toast and navigate to profile on success', async () => {
-        // Arrange
-        const mockUser = { uid: '123' };
-        signInWithEmailAndPassword.mockResolvedValueOnce({ user: mockUser });
-        
-        // Act
-        signIn('test@example.com', 'password123', mockNavigate);
-        
-        // Wait for promises
-        await vi.runAllTimersAsync();
-        
-        // Assert
-        expect(toast.success).toHaveBeenCalledWith('Sign In Successful!');
-        expect(mockNavigate).toHaveBeenCalledWith('/profile');
-    });
-});
+  it('should re-export handleGoogleSignIn from firebase/auth', () => {
+    utilsFirebase.handleGoogleSignIn();
+    expect(firebaseAuth.handleGoogleSignIn).toHaveBeenCalled();
+  });
 
-describe('handleGoogleSignIn', () => {
-    it('should call signInWithPopup with auth and provider', async () => {
-        // Arrange
-        signInWithPopup.mockResolvedValueOnce({ user: { uid: '123' } });
-        
-        // Act
-        await handleGoogleSignIn(mockNavigate);
-        
-        // Assert
-        expect(signInWithPopup).toHaveBeenCalled();
-        expect(toast.success).toHaveBeenCalledWith('Login Successful!');
-    });
-});
+  it('should re-export getCurrentUserToken from firebase/auth', () => {
+    utilsFirebase.getCurrentUserToken();
+    expect(firebaseAuth.getCurrentUserToken).toHaveBeenCalled();
+  });
 
-describe('signOutUser', () => {
-    it('should call signOut with auth', () => {
-        // Act
-        signOutUser();
-        
-        // Assert
-        expect(signOut).toHaveBeenCalledWith(auth);
-    });
-
-    it('should show success toast on successful sign out', async () => {
-        // Arrange
-        signOut.mockResolvedValueOnce();
-        
-        // Act
-        signOutUser();
-        
-        // Wait for promises
-        await vi.runAllTimersAsync();
-        
-        // Assert
-        expect(toast.success).toHaveBeenCalledWith('Sign Out Successful!');
-    });
-});
+  it('should call setupAuthStateListener on module load', () => {
+    expect(firebaseAuth.setupAuthStateListener).toHaveBeenCalled();
+  });
 });
