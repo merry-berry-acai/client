@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { setSnackbarFunctions } from '../utils/firebase'; // Import setSnackbarFunctions
 
 // Create context
 export const SnackbarContext = createContext();
@@ -16,6 +17,15 @@ export const SnackbarProvider = ({ children }) => {
     autoHideDuration: 3000,
     position: { vertical: 'bottom', horizontal: 'center' }
   });
+
+  useEffect(() => {
+    setSnackbarFunctions({ // Call setSnackbarFunctions on mount
+      success: showSuccess,
+      error: showError,
+      info: showInfo,
+      warning: showWarning
+    });
+  }, []);
 
   // Function to show a success message
   const showSuccess = (message, options = {}) => {

@@ -70,7 +70,8 @@ export const calculateOrderTotal = (order) => {
 // Format order items for display
 export const formatOrderItems = (items) => {
   if (!items || !Array.isArray(items)) return 'No items';
-  
+  if (items.length === 0) return 'No items';
+
   return items.map(item => {
     const name = item.product?.name || 'Unknown Item';
     const quantity = item.quantity || 1;

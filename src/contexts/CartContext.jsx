@@ -83,13 +83,17 @@ export const CartProvider = ({ children }) => {
     };
     
     setCartItems(prev => {
-      // If it's an edit operation (has matching cartItemId), replace the existing item
-      if (itemWithId.cartItemId && prev.some(i => i.cartItemId === itemWithId.cartItemId)) {
-        return prev.map(i => i.cartItemId === itemWithId.cartItemId ? itemWithId : i);
+      const existingCartItemIndex = prev.findIndex(i => i._id === itemWithId._id);
+
+      if (existingCartItemIndex > -1) {
+        // Item already exists, increase quantity
+        const updatedCartItems = [...prev];
+        updatedCartItems[existingCartItemIndex].quantity += 1;
+        return updatedCartItems;
+      } else {
+        // Item doesn't exist, add as new item
+        return [...prev, itemWithId];
       }
-      
-      // Otherwise add as new item
-      return [...prev, itemWithId];
     });
   };
 
