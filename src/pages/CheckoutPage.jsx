@@ -92,7 +92,7 @@ const CheckoutPage = () => {
       console.log("orderResponse:", orderResponse);
       
       // Extract order ID
-      const orderId = orderResponse?.order?._id;
+      const orderId = orderResponse?._id;
       setOrderId(orderId);
   
       // Create payment intent with auth token in header
