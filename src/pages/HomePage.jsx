@@ -14,6 +14,7 @@ const HomePage = () => {
 
   return (
     <Layout>
+      <Button onClick={() => {throw new Error('Testing Prod Error')}}>Throw Error</Button>
       {/* Hero Section */}
       <Box sx={{
           background: 'linear-gradient(135deg, #8e24aa, #4a148c)',
