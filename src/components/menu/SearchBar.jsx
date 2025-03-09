@@ -17,6 +17,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, variant = "default" }) => {
         value={searchTerm}
         onChange={handleSearchChange}
         size={isBanner ? "medium" : "small"}
+        inputProps={{ 'aria-label': 'Search menu items' }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
