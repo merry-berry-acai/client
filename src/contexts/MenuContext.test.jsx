@@ -59,7 +59,7 @@ describe("MenuContext", () => {
     );
     expect(contextValue.loadingMenu).toBe(false);
     expect(contextValue.error).toBe(null);
-    });
+  });
 
   it("handles errors during data fetching", async () => {
     getMenuItems.mockRejectedValue(new Error("Network Error"));
@@ -92,16 +92,29 @@ describe("MenuContext", () => {
     expect(contextValue.toppings).toEqual([]);
     expect(contextValue.featuredItems).toEqual([]);
   });
-      {(value) => {
-        contextValue = value;
-        return null;
-      }}
+  
+  it("refreshMenuData refreshes all data", async () => {
+    const mockMenuItems = [{ id: 1, name: "Pizza" }];
+    const updatedMenuItems = [{ id: 1, name: "Pizza" }, { id: 2, name: "Burger" }];
+    
+    getMenuItems.mockResolvedValueOnce(mockMenuItems);
+    getCategories.mockResolvedValue([]);
+    getToppings.mockResolvedValue([]);
+    getFeaturedItems.mockResolvedValue([]);
+    
+    let contextValue;
+    const TestComponent = () => (
+      <MenuContext.Consumer>
+        {(value) => {
+          contextValue = value;
+          return null;
+        }}
       </MenuContext.Consumer>
     );
     
     render(
       <MenuProvider>
-      <TestComponent />
+        <TestComponent />
       </MenuProvider>
     );
     
@@ -116,9 +129,9 @@ describe("MenuContext", () => {
     // Check that data was refreshed
     await waitFor(() => expect(contextValue.menuItems).toEqual(updatedMenuItems));
     expect(getMenuItems).toHaveBeenCalledTimes(2);
-    });
+  });
     
-    it("refreshMenuDataByType refreshes specific data type", async () => {
+  it("refreshMenuDataByType refreshes specific data type", async () => {
     const mockMenuItems = [{ id: 1, name: "Pizza" }];
     const mockCategories = [{ id: 1, name: "Fast Food" }];
     const updatedCategories = [{ id: 1, name: "Fast Food" }, { id: 2, name: "Dessert" }];
@@ -131,16 +144,16 @@ describe("MenuContext", () => {
     let contextValue;
     const TestComponent = () => (
       <MenuContext.Consumer>
-      {(value) => {
-        contextValue = value;
-        return null;
-      }}
+        {(value) => {
+          contextValue = value;
+          return null;
+        }}
       </MenuContext.Consumer>
     );
     
     render(
       <MenuProvider>
-      <TestComponent />
+        <TestComponent />
       </MenuProvider>
     );
     
@@ -156,9 +169,9 @@ describe("MenuContext", () => {
     await waitFor(() => expect(contextValue.categories).toEqual(updatedCategories));
     expect(getMenuItems).toHaveBeenCalledTimes(1); // Should not be called again
     expect(getCategories).toHaveBeenCalledTimes(2);
-    });
+  });
     
-    it("updates lastRefresh timestamp after fetching data", async () => {
+  it("updates lastRefresh timestamp after fetching data", async () => {
     getMenuItems.mockResolvedValue([]);
     getCategories.mockResolvedValue([]);
     getToppings.mockResolvedValue([]);
@@ -167,16 +180,16 @@ describe("MenuContext", () => {
     let contextValue;
     const TestComponent = () => (
       <MenuContext.Consumer>
-      {(value) => {
-        contextValue = value;
-        return null;
-      }}
+        {(value) => {
+          contextValue = value;
+          return null;
+        }}
       </MenuContext.Consumer>
     );
     
     render(
       <MenuProvider>
-      <TestComponent />
+        <TestComponent />
       </MenuProvider>
     );
     
@@ -192,19 +205,5 @@ describe("MenuContext", () => {
       expect(contextValue.lastRefresh).not.toEqual(firstRefreshTime);
       expect(contextValue.lastRefresh).toBeGreaterThan(firstRefreshTime);
     });
-    });
-  });
-
-    render(
-      <MenuProvider>
-        <TestComponent />
-      </MenuProvider>
-    );
-
-    await waitFor(() => {
-      expect(contextValue.error).toBeTruthy();
-    });
-
-    expect(contextValue.loadingMenu).toBe(false);
   });
 });

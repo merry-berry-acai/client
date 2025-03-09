@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { auth, getCurrentUserToken } from "../utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { storeUserPhoto, clearUserPhoto, getUserPhoto, storeWithExpiry, getWithExpiry, removeItem } from '../utils/localStorage';

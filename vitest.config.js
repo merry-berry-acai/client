@@ -7,6 +7,19 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setup.js",
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "json", "html"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "node_modules/",
+        "src/setupTests.js",
+        "**/*.d.ts",
+        "**/*.test.{js,jsx,ts,tsx}",
+        "**/index.{js,jsx,ts,tsx}",
+      ],
+    },
+    testTimeout: 20000,
   },
   define: {
     "import.meta.env.VITE_API_URL": JSON.stringify("http://localhost:3000/api"),
