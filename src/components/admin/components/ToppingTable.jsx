@@ -12,7 +12,7 @@ const ToppingTable = ({ toppings, onEdit, onDelete }) => {
         <TableHead>
           <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
             <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
+          
             <TableCell>Price</TableCell>
             <TableCell>Status</TableCell>
             <TableCell align="right">Actions</TableCell>
@@ -29,9 +29,7 @@ const ToppingTable = ({ toppings, onEdit, onDelete }) => {
             toppings.map((topping) => (
               <TableRow key={topping?._id} hover>
                 <TableCell>{topping?.name}</TableCell>
-                <TableCell sx={{ maxWidth: 300 }}>
-                  <Typography noWrap>{topping?.description}</Typography>
-                </TableCell>
+                
                 <TableCell>${parseFloat(topping?.price || 0).toFixed(2)}</TableCell>
                 <TableCell>
                   {topping?.isAvailable !== false ? (

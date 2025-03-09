@@ -49,17 +49,6 @@ const MenuItemForm = ({
             />
             <TextField
               fullWidth
-              label="Detailed Description"
-              name="details"
-              value={formData.details}
-              onChange={onInputChange}
-              multiline
-              rows={2}
-              margin="dense"
-              placeholder="Additional details about the product"
-            />
-            <TextField
-              fullWidth
               label="Price"
               name="basePrice"
               type="number"

@@ -1,9 +1,10 @@
 import React from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, 
-  TableRow, Paper, IconButton, Box, Typography
+  TableRow, Paper, IconButton, Box, Typography, Skeleton
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, Image as ImageIcon } from '@mui/icons-material';
+import AppImage from '../../common/AppImage';
 
 const MenuItemTable = ({ 
   menuItems, 
@@ -11,6 +12,40 @@ const MenuItemTable = ({
   onDelete, 
   getCategoryName 
 }) => {
+  // Function to render the image with proper error handling
+  const renderItemImage = (item) => {
+    if (!item.imageUrl) {
+      return (
+        <Box sx={{ 
+          width: 50, 
+          height: 50, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          bgcolor: '#f0f0f0', 
+          borderRadius: 1 
+        }}>
+          <ImageIcon color="disabled" />
+        </Box>
+      );
+    }
+
+    return (
+      <AppImage
+        src={item.imageUrl}
+        alt={item.name || 'Menu item'}
+        sx={{ 
+          width: 50, 
+          height: 50, 
+          objectFit: 'cover', 
+          borderRadius: 1,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+          aspectRatio: '1/1'
+        }}
+      />
+    );
+  };
+
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 4 }}>
       <Table sx={{ minWidth: 650 }}>
@@ -35,20 +70,7 @@ const MenuItemTable = ({
           ) : (
             menuItems.map((item) => (
               <TableRow key={item._id} hover>
-                <TableCell>
-                  {item.image ? (
-                    <Box 
-                      component="img"
-                      src={item.image}
-                      alt={item.name}
-                      sx={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 1 }}
-                    />
-                  ) : (
-                    <Box sx={{ width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f0f0f0', borderRadius: 1 }}>
-                      <ImageIcon color="disabled" />
-                    </Box>
-                  )}
-                </TableCell>
+                <TableCell>{renderItemImage(item)}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell sx={{ maxWidth: 200 }}>
                   <Typography noWrap>{item.description}</Typography>

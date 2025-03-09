@@ -31,7 +31,7 @@ export const AUTH_CONFIG = {
   adminCacheKey: 'auth_admin_status',
   adminCacheExpiry: 1000 * 60 * 60, // 1 hour
   // For development: hardcoded admin UID
-  adminUID: "EszW3BDsb4P6qLp9gJ03IRkCTKn2"
+  adminUID: "nYoUNJqj8Wh4NbHcH4Go2Wz1Ie82"
 };
 
 // Payment Configuration
@@ -43,6 +43,21 @@ export const PAYMENT_CONFIG = {
 export const ENV_CONFIG = {
   isDevelopment: import.meta.env.VITE_NODE_ENV === 'development',
   nodeEnv: import.meta.env.VITE_NODE_ENV
+};
+
+// Cache Configuration
+export const CACHE_CONFIG = {
+  storagePrefix: 'menu_cache_',
+  defaultExpiry: 1000 * 60 * 30, // 30 minutes
+  refreshInterval: 1000 * 60 * 5, // 5 minutes - interval for background refresh
+  forceRefreshThreshold: 1000 * 60 * 60, // 60 minutes - when to force refresh on user action
+  keys: {
+    menuItems: 'menuItems',
+    categories: 'categories',
+    toppings: 'toppings',
+    featuredItems: 'featuredItems',
+    users: 'users'
+  }
 };
 
 // Logger Configuration

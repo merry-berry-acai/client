@@ -53,8 +53,7 @@ export const AuthProvider = ({ children }) => {
             console.log("Admin status check complete. Result:", adminStatus);
             setIsAdmin(adminStatus);
             
-            // Cache the admin status
-            const { storeWithExpiry } = utils.localStorage;
+       
             storeWithExpiry(AUTH_CONFIG.adminCacheKey, { uid: user.uid, isAdmin: adminStatus }, AUTH_CONFIG.adminCacheExpiry);
           } catch (error) {
             console.error("Error in admin check:", error);
@@ -62,7 +61,6 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else {
-        const { clearUserPhoto, removeItem } = utils.localStorage;
         clearUserPhoto();
         removeItem(AUTH_CONFIG.adminCacheKey);
         setCurrentUser(null);

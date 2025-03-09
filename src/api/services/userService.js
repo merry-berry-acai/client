@@ -1,26 +1,13 @@
-import { makeRequest, apiHandler } from '../apiClient';
+import { makeRequest, apiHandler, getAuthToken } from '../apiClient'; // Update import
 import { API_CONFIG } from '../../config';
 import { AUTH_CONFIG } from '../../config';
 import { dbLogger as log } from '../../utils/logger';
 import { auth } from '../../firebase/config';  // Import auth to get current user
+import { invalidateUsersCache } from '../../utils/cacheManager';
 
 const ADMIN_UID = AUTH_CONFIG.adminUID;
 
-/**
- * Helper function to get current user's token
- * @returns {Promise<string|null>} - Auth token or null
- */
-async function getAuthToken() {
-  const user = auth.currentUser;
-  if (!user) return null;
-  
-  try {
-    return await user.getIdToken(true);
-  } catch (error) {
-    log.error("Error getting auth token:", error);
-    return null;
-  }
-}
+// Remove getAuthToken function since it's now in apiClient
 
 /**
  * Ensures that any request to /users/* endpoints includes an auth token
@@ -29,8 +16,8 @@ async function getAuthToken() {
  * @returns {Promise<Object>} - Updated options with auth token
  */
 async function ensureAuthTokenForUserEndpoint(options, providedToken = null) {
-  // Skip if endpoint doesn't start with /users/
-  if (!options.endpoint.startsWith('/users/') && !options.endpoint === '/users') {
+  // Skip if endpoint doesn't start with /users/ or isn't exactly /users
+  if (!options.endpoint.startsWith('/users/') && options.endpoint !== '/users') {
     return options;
   }
   
@@ -131,7 +118,7 @@ export async function checkIsAdmin(uid) {
       retries: 0
     });
 
-    const response = await makeRequest(requestOptions);
+    const response = await apiHandler(requestOptions);
     return response && response.role === 'admin';
   } catch (error) {
     console.error("API admin check failed:", error.message);
@@ -158,6 +145,129 @@ export async function getUserOrders(uid, authToken) {
     return await apiHandler(requestOptions);
   } catch (error) {
     console.error('Error fetching user orders:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches all users (admin only)
+ * @returns {Promise<Array>} Array of user objects
+ */
+export async function fetchUsers() {
+  const authToken = await getAuthToken();
+  log.info('Fetching all users (admin operation)');
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'get',
+      endpoint: '/users/all',
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error('Error fetching users:', error);
+    throw error;
+  }
+}
+
+/**
+ * Creates a new user (admin only)
+ * @param {Object} userData - User data to create
+ * @returns {Promise<Object>} Created user object
+ */
+export async function createUser(userData) {
+  const authToken = await getAuthToken();
+  log.info('Creating new user (admin operation)');
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'post',
+      endpoint: '/users',
+      data: userData,
+      authToken: authToken
+    });
+    
+    const result = await apiHandler(requestOptions);
+    invalidateUsersCache();
+    return result;
+  } catch (error) {
+    log.error('Error creating user:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates an existing user (admin only)
+ * @param {string} userId - ID of user to update
+ * @param {Object} userData - Updated user data
+ * @returns {Promise<Object>} Updated user object
+ */
+export async function updateUser(userId, userData) {
+  const authToken = await getAuthToken();
+  log.info(`Updating user ${userId} (admin operation)`);
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'put',
+      endpoint: `/users/${userId}`,
+      data: userData,
+      authToken: authToken
+    });
+    
+    const result = await apiHandler(requestOptions);
+    invalidateUsersCache();
+    return result;
+  } catch (error) {
+    log.error(`Error updating user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a user (admin only)
+ * @param {string} userId - ID of user to delete
+ * @returns {Promise<Object>} Response data
+ */
+export async function deleteUser(userId) {
+  const authToken = await getAuthToken();
+  log.info(`Deleting user ${userId} (admin operation)`);
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'delete',
+      endpoint: `/users/${userId}`,
+      authToken: authToken
+    });
+    
+    const result = await apiHandler(requestOptions);
+    invalidateUsersCache();
+    return result;
+  } catch (error) {
+    log.error(`Error deleting user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a user by ID (admin only)
+ * @param {string} userId - The ID of the user to fetch
+ * @returns {Promise<Object>} - The user data
+ */
+export async function fetchUserById(userId) {
+  const authToken = await getAuthToken();
+  log.info(`Fetching user details for ${userId} (admin operation)`);
+  
+  try {
+    const requestOptions = await ensureAuthTokenForUserEndpoint({
+      method: 'get',
+      endpoint: `/users/${userId}`,
+      authToken: authToken
+    });
+    
+    return await apiHandler(requestOptions);
+  } catch (error) {
+    log.error(`Error fetching user ${userId} details:`, error);
     throw error;
   }
 }
