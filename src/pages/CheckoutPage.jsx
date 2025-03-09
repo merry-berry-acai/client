@@ -104,6 +104,9 @@ const CheckoutPage = () => {
         },
         authToken: authToken
       });
+
+      console.log("paymentIntentResponse:", paymentIntentResponse);
+      console.log("paymentIntentResponse?.data:", paymentIntentResponse?.data);
       
       // Access clientSecret
       const clientSecret = paymentIntentResponse?.data?.clientSecret;
