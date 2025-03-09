@@ -109,13 +109,13 @@ const CheckoutPage = () => {
       console.log("paymentIntentResponse?.data:", paymentIntentResponse?.data);
       
       // Access clientSecret
-      const clientSecret = paymentIntentResponse?.data?.clientSecret;
+      const clientSecret = paymentIntentResponse?.clientSecret;
 
       if (clientSecret) {
         setClientSecret(clientSecret);
         setActiveStep(1);
       } else {
-        throw new Error("Missing client secret from payment intent response data");
+        throw new Error("Missing client secret from payment intent response");
       }
     } catch (err) {
       console.error("Error processing order:", err);
