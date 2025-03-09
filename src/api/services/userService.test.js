@@ -11,7 +11,8 @@ import { AUTH_CONFIG, LOG_CONFIG } from '../../config';
 // Mock dependencies
 vi.mock('../apiClient', () => ({
   makeRequest: vi.fn(() => Promise.resolve({ data: 'mock data' })),
-  getAuthToken: vi.fn(() => Promise.resolve('mock-token'))
+  getAuthToken: vi.fn(() => Promise.resolve('mock-token')),
+  apiHandler: vi.fn(options => makeRequest(options).then(res => res.data)) // Mock apiHandler
 }));
 
 vi.mock('../../config', () => ({
@@ -19,8 +20,39 @@ vi.mock('../../config', () => ({
     adminUID: 'admin-123'
   },
   LOG_CONFIG: {
-    logLevel: 'debug'
-  }
+    logLevel: 'debug',
+    contextIcons: {
+      api: '🌐',
+      firebase: '🔥',
+      auth: '🔐',
+      app: '📱',
+      database: '💾',
+      config: '⚙️',
+      default: '📋'
+    },
+    componentConfig: {
+      api: { 
+        showSuccess: false,
+        showPayloads: true,
+        showRetryAttempts: true 
+      },
+      firebase: {
+        showAuthFlow: true
+      }
+    }
+  },
+  FIREBASE_CONFIG: { // Mock FIREBASE_CONFIG with minimal valid config
+    apiKey: 'dummy-api-key',
+    authDomain: 'dummy-auth-domain',
+    projectId: 'dummy-project-id',
+    storageBucket: 'dummy-storage-bucket',
+    messagingSenderId: 'dummy-messaging-sender-id',
+    appId: 'dummy-app-id',
+    measurementId: 'dummy-measurement-id'
+  },
+  API_CONFIG: { // Mock API_CONFIG with baseURL
+    baseURL: 'http://dummy-api.com'
+  } 
 }));
 
 describe('userService', () => {
@@ -34,7 +66,7 @@ describe('userService', () => {
       const result = await ensureAuthTokenForUserEndpoint(options);
       
       expect(getAuthToken).toHaveBeenCalled();
-      expect(result.authToken).toBe('mock-token');
+      expect(result).toHaveProperty('authToken', 'mock-token');
     });
     
     it('should use provided token if available', async () => {
@@ -44,7 +76,7 @@ describe('userService', () => {
       const result = await ensureAuthTokenForUserEndpoint(options, providedToken);
       
       expect(getAuthToken).not.toHaveBeenCalled();
-      expect(result.authToken).toBe(providedToken);
+      expect(result).toHaveProperty('authToken', providedToken);
     });
     
     it('should not modify options for non-user endpoints', async () => {
@@ -53,25 +85,34 @@ describe('userService', () => {
       
       expect(getAuthToken).not.toHaveBeenCalled();
       expect(result).toEqual(options);
+      expect(result).not.toHaveProperty('authToken'); // Ensure authToken is not added
     });
   });
   
   describe('sendUserToDB', () => {
     it('should call makeRequest with correct parameters', async () => {
-      const userData = { name: 'Test User' };
+      const userData = { 
+        name: 'Test User',
+        uid: 'test-uid', 
+        email: 'test@example.com' 
+      };
       const firebaseUid = 'user-123';
       await sendUserToDB(userData, firebaseUid);
       
       expect(makeRequest).toHaveBeenCalledWith(expect.objectContaining({
         method: 'post',
-        endpoint: '/users',
+        endpoint: '/users/register', // Updated endpoint to /users/register
         data: userData,
         uidHeader: firebaseUid
       }));
     });
     
     it('should use provided auth token when available', async () => {
-      const userData = { name: 'Test User' };
+      const userData = { 
+        name: 'Test User',
+        uid: 'test-uid', 
+        email: 'test@example.com' 
+      };
       const firebaseUid = 'user-123';
       const authToken = 'custom-token';
       
@@ -84,13 +125,13 @@ describe('userService', () => {
   });
   
   describe('checkIsAdmin', () => {
-    it('should return true for admin UID', () => {
-      const result = checkIsAdmin('admin-123');
+    it('should return true for admin UID', async () => {
+      const result = await checkIsAdmin('admin-123');
       expect(result).toBe(true);
     });
     
-    it('should return false for non-admin UID', () => {
-      const result = checkIsAdmin('regular-user');
+    it('should return false for non-admin UID', async () => {
+      const result = await checkIsAdmin('regular-user');
       expect(result).toBe(false);
     });
   });
@@ -103,7 +144,7 @@ describe('userService', () => {
       
       expect(makeRequest).toHaveBeenCalledWith(expect.objectContaining({
         method: 'get',
-        endpoint: `/users/${uid}/orders`,
+        endpoint: `/users/orders/me`, // Updated endpoint to /users/orders/me
         authToken: 'order-token'
       }));
     });
