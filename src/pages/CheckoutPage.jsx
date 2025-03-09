@@ -106,20 +106,13 @@ const CheckoutPage = () => {
       });
       
       // Access clientSecret
-      const clientSecret = paymentIntentResponse?.clientSecret;
-      const paymentIntent = paymentIntentResponse?.paymentIntentId;
+      const clientSecret = paymentIntentResponse?.data?.clientSecret;
 
-      if (paymentIntent) {
-        setPaymentIntent(paymentIntent);
-      } else {
-        throw new Error("Missing payment intent from response");
-      }
-      
       if (clientSecret) {
         setClientSecret(clientSecret);
         setActiveStep(1);
       } else {
-        throw new Error("Missing client secret from payment intent");
+        throw new Error("Missing client secret from payment intent response data");
       }
     } catch (err) {
       console.error("Error processing order:", err);
