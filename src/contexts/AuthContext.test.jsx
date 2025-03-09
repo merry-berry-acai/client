@@ -44,7 +44,11 @@ describe("AuthContext", () => {
   it("handles login", async () => {
     signInWithEmailAndPassword.mockResolvedValue({ user: mockUser });
 
-    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+    const TestAuthProvider = ({ children }) => (
+  <AuthProvider>{children}</AuthProvider>
+);
+
+const { result } = renderHook(() => useAuth(), { wrapper: TestAuthProvider });
 
     await act(async () => {
       await result.current.login("test@example.com", "password");
@@ -70,6 +74,57 @@ describe("AuthContext", () => {
     });
 
     expect(result.current.currentUser).toBe(null);
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("should have correct initial state", () => {
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.currentUser).toBe(null);
+    expect(result.current.loading).toBe(true);
+    expect(result.current.authToken).toBe(null);
+  });
+
+  it("should update state on auth state changed - logged in", async () => {
+    const mockOnAuthStateChanged = vi.fn((_auth, callback) => {
+      callback(mockUser);
+      return () => {};
+    });
+    getAuth.mockReturnValueOnce({
+      currentUser: mockUser,
+      signInWithEmailAndPassword: vi.fn(),
+      signOut: vi.fn(),
+      onAuthStateChanged: mockOnAuthStateChanged,
+    });
+
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+    
+    // Wait for state to update (loading to be false)
+    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.currentUser).toEqual(mockUser);
+  });
+
+  it("should update state on auth state changed - logged out", async () => {
+    const mockOnAuthStateChanged = vi.fn((_auth, callback) => {
+      callback(null);
+      return () => {};
+    });
+    getAuth.mockReturnValueOnce({
+      currentUser: null,
+      signInWithEmailAndPassword: vi.fn(),
+      signOut: vi.fn(),
+      onAuthStateChanged: mockOnAuthStateChanged,
+    });
+
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    // Wait for state to update (loading to be false)
+    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    
     expect(result.current.isAuthenticated).toBe(false);
   });
 });
