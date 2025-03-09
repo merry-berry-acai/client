@@ -9,12 +9,12 @@
  */
 export const logMissingImages = (menuItems) => {
   if (!menuItems || !Array.isArray(menuItems) || menuItems.length === 0) {
-    return;
+    return [];
   }
 
   // Only run in development mode
   if (process.env.NODE_ENV !== 'development' && !import.meta.env.DEV) {
-    return;
+    return [];
   }
 
   const missingImages = menuItems.filter(item => {
