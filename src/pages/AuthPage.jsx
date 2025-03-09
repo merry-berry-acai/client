@@ -283,8 +283,9 @@ const AuthPage = ({ variant }) => {
                     </FormControl>
                   )}
                   
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
+                    sx={{
                       py: 1.5,
                       bgcolor: 'purple',
                       '&:hover': {
