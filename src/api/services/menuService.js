@@ -1,102 +1,36 @@
-import { makeRequest, getAuthToken } from '../apiClient';
-import { invalidateMenuItemsCache } from '../../utils/cacheManager';
+import BaseService from './BaseService';
 
-/**
- * Get all menu items
- */
-export async function getMenuItems() {
-  return makeRequest({
-    method: 'get',
-    endpoint: '/items/'
-  });
-}
+const ENDPOINT = '/items';
+const CACHE_KEY = 'menuItems';
 
-/**
- * Get featured items
- */
-export async function getFeaturedItems() {
-  return makeRequest({
-    method: 'get',
-    endpoint: '/items/home/featured'
-  });
-}
-
-/**
- * Get items in a specific category
- * @param {string} category - Category to fetch items for
- */
-export async function getItemsInCategory(category) {
-  return makeRequest({
-    method: 'get',
-    endpoint: `/items/category/${category}`
-  });
-}
-
-/**
- * Create a new menu item
- * @param {Object} itemData - The item data to create
- */
-export async function createMenuItem(itemData) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'post',
-      endpoint: '/items/',
-      data: itemData,
-      authToken
-    });
-    
-    // Invalidate menu items cache after successful creation
-    invalidateMenuItemsCache();
-    return result;
-  } catch (error) {
-    throw error;
+class MenuService extends BaseService {
+  constructor() {
+    super(ENDPOINT, CACHE_KEY);
   }
+
+  getMenuItems = async () => {
+    return this.get();
+  };
+
+  getFeaturedItems = async () => {
+    return this.get('home/featured'); // Assuming 'home/featured' is the ID for featured items
+  };
+
+  getItemsInCategory = async (category) => {
+    return this.get(`category/${category}`); // Assuming 'category/{category}' is the ID format
+  };
+
+  createMenuItem = async (itemData, authToken) => {
+    return this.create(itemData, authToken);
+  };
+
+  updateMenuItem = async (id, itemData, authToken) => {
+    return this.update(id, itemData, authToken);
+  };
+
+  deleteMenuItem = async (id, authToken) => {
+    return this.delete(id, authToken);
+  };
 }
 
-/**
- * Update an existing menu item
- * @param {string} id - Item ID to update
- * @param {Object} itemData - The updated item data
- */
-export async function updateMenuItem(id, itemData) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'patch',
-      endpoint: `/items/${id}`,
-      data: itemData,
-      authToken
-    });
-    
-    // Invalidate menu items cache after successful update
-    invalidateMenuItemsCache();
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Delete a menu item
- * @param {string} id - Item ID to delete
- */
-export async function deleteMenuItem(id) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'delete',
-      endpoint: `/items/${id}`,
-      authToken
-    });
-    
-    // Invalidate menu items cache after successful deletion
-    invalidateMenuItemsCache();
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
+export default new MenuService();
