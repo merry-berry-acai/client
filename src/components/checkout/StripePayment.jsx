@@ -8,6 +8,16 @@ import {
   Alert,
   Paper
 } from '@mui/material';
+import React, { useState } from 'react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Typography,
+  Alert,
+  Paper
+} from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 
 const CARD_ELEMENT_OPTIONS = {
@@ -58,8 +68,14 @@ const StripePayment = ({ clientSecret, orderId, onPaymentSuccess, onPaymentError
       });
 
       if (error) {
-        setError(`Payment failed: ${error.message}`);
-        onPaymentError(error.message);
+        let errorMessage = "Payment failed. Please try again.";
+        if (error.type === 'card_error' || error.code === 'card_declined') {
+          errorMessage = error.message; // Use Stripe's detailed card error message
+        } else {
+          errorMessage = "Payment failed due to a system error. Please try again later.";
+        }
+        setError(errorMessage);
+        onPaymentError(errorMessage);
       } else if (paymentIntent.status === 'succeeded') {
         setSucceeded(true);
         
