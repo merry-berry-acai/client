@@ -20,7 +20,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 import CartDropdown from './cart/CartDropdown';
 import { getFullImageUrl } from '../utils/imageUtils';
-import NavLink from '../common/NavLink';
+import NavLink from './common/NavLink';
 
 const logo = new URL('../assets/logo.jpg', import.meta.url).href;
 
