@@ -4,19 +4,19 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { MenuContext } from '../../contexts/MenuContext';
-import { createCategory, updateCategory, deleteCategory } from '../../api/apiHandler';
+import ServiceFactory from '../../api/services/ServiceFactory';
 import { toast } from 'react-toastify';
 
 // Import components using barrel files
-import { 
-  CategoryTable, 
+import {
+  CategoryTable,
   CategoryForm,
-  DeleteConfirmationDialog 
+  DeleteConfirmationDialog
 } from './components';
 
 const CategoryManager = () => {
   const { categories, refreshMenuData, loadingMenu } = useContext(MenuContext);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -90,7 +90,7 @@ const CategoryManager = () => {
   const handleClearImage = () => {
     setImagePreview('');
     setImageFile(null);
-    setFormData({...formData, image: ''});
+    setFormData({ ...formData, image: '' });
   };
 
   const handleRefresh = () => {
@@ -100,7 +100,7 @@ const CategoryManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name) {
       setNotification({
         open: true,
@@ -109,26 +109,29 @@ const CategoryManager = () => {
       });
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       const categoryData = { ...formData };
-      
+
       // Handle image upload (in a real app, you'd upload to cloud storage)
       if (!categoryData.image && !imageFile) {
         // Optional: Set a placeholder image
         categoryData.image = 'https://via.placeholder.com/300x200?text=No+Image';
       }
-      
+
+      const categoryService = ServiceFactory.getService('categories');
+      const { authToken } = useContext(AuthContext); // Get authToken
+
       if (formMode === 'create') {
-        await createCategory(categoryData);
+        await categoryService.createCategory(categoryData, authToken); // Pass authToken
         toast.success('Category created successfully');
       } else if (formMode === 'edit' && currentCategory) {
-        await updateCategory(currentCategory._id, categoryData);
+        await categoryService.updateCategory(currentCategory._id, categoryData, authToken); // Pass authToken
         toast.success('Category updated successfully');
       }
-      
+
       // Refresh data from database after successful operation
       refreshMenuData();
       handleCloseDialog();
@@ -146,12 +149,14 @@ const CategoryManager = () => {
 
   const handleDelete = async () => {
     if (!currentCategory) return;
-    
+
     try {
       setLoading(true);
-      await deleteCategory(currentCategory._id);
+      const categoryService = ServiceFactory.getService('categories');
+      const { authToken } = useContext(AuthContext); // Get authToken
+      await categoryService.deleteCategory(currentCategory._id, authToken); // Pass authToken
       toast.success('Category deleted successfully');
-      
+
       // Refresh data after deletion
       refreshMenuData();
       handleCloseDeleteDialog();
@@ -168,7 +173,7 @@ const CategoryManager = () => {
   };
 
   const handleCloseNotification = () => {
-    setNotification({...notification, open: false});
+    setNotification({ ...notification, open: false });
   };
 
   if (loadingMenu && (!categories || categories.length === 0)) {
@@ -215,13 +220,13 @@ const CategoryManager = () => {
 
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 
-      <CategoryTable 
-        categories={categories} 
-        onEdit={handleOpenEditDialog} 
+      <CategoryTable
+        categories={categories}
+        onEdit={handleOpenEditDialog}
         onDelete={handleOpenDeleteDialog}
       />
 
-      <CategoryForm 
+      <CategoryForm
         open={openDialog}
         onClose={handleCloseDialog}
         formMode={formMode}
@@ -234,7 +239,7 @@ const CategoryManager = () => {
         onClearImage={handleClearImage}
       />
 
-      <DeleteConfirmationDialog 
+      <DeleteConfirmationDialog
         open={openDeleteDialog}
         onClose={handleCloseDeleteDialog}
         onDelete={handleDelete}

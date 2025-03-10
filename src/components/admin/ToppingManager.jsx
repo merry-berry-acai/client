@@ -6,6 +6,8 @@ import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { MenuContext } from '../../contexts/MenuContext';
 import { createTopping, updateTopping, deleteTopping } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
+import ServiceFactory from '../../api/services/ServiceFactory';
+import { AuthContext } from '../../contexts/AuthContext';
 
 // Import components using barrel files
 import { 
@@ -16,6 +18,7 @@ import {
 
 const ToppingManager = () => {
   const { toppings, refreshMenuData, loadingMenu } = useContext(MenuContext);
+  const { authToken } = useContext(AuthContext);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -104,16 +107,16 @@ const ToppingManager = () => {
         ...formData,
         price: price
       };
+      const toppingService = ServiceFactory.getService('toppings');
       
       if (formMode === 'create') {
-        await createTopping(toppingData);
+        await toppingService.createTopping(toppingData, authToken);
         toast.success('Topping created successfully');
       } else if (formMode === 'edit' && currentTopping) {
-        await updateTopping(currentTopping._id, toppingData);
+        await toppingService.updateTopping(currentTopping._id, formData, authToken);
         toast.success('Topping updated successfully');
       }
       
-      // Refresh data from database after successful operation
       refreshMenuData();
       handleCloseDialog();
     } catch (err) {
@@ -129,14 +132,14 @@ const ToppingManager = () => {
   };
 
   const handleDelete = async () => {
-    if (!currentTopping?._id) return;
+    if (!currentTopping) return;
     
     try {
       setLoading(true);
-      await deleteTopping(currentTopping._id);
+      const toppingService = ServiceFactory.getService('toppings');
+      await toppingService.deleteTopping(currentTopping._id, authToken);
       toast.success('Topping deleted successfully');
       
-      // Refresh data after deletion
       refreshMenuData();
       handleCloseDeleteDialog();
     } catch (err) {
