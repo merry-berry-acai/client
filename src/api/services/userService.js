@@ -18,7 +18,7 @@ class UserService extends BaseService {
    * @param {Object} options - Additional options
    * @returns {Promise<Object>} - The created user data from the server
    */
-  async sendUserToDB(user, firebaseUid, authToken = null, options = {}) {
+  async sendUserToDB (user, firebaseUid, authToken = null, options = {}) {
     log.info('sendUserToDB called with user data');
     log.debug('User data:', user);
 
@@ -203,4 +203,16 @@ class UserService extends BaseService {
   }
 }
 
-export default UserService;
+const userService = new UserService();
+export default userService;
+
+// Add named exports for individual methods
+export const sendUserToDB = userService.sendUserToDB.bind(userService);
+export const checkIsAdmin = userService.checkIsAdmin.bind(userService);
+export const getUserOrders = userService.getUserOrders.bind(userService);
+export const fetchUsers = userService.fetchUsers.bind(userService);
+export const createUser = userService.createUser.bind(userService);
+export const updateUser = userService.updateUser.bind(userService);
+export const deleteUser = userService.deleteUser.bind(userService);
+export const fetchUserById = userService.fetchUserById.bind(userService);
+
