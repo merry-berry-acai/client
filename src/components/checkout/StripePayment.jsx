@@ -8,16 +8,6 @@ import {
   Alert,
   Paper
 } from '@mui/material';
-import React, { useState } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Typography,
-  Alert,
-  Paper
-} from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 
 const CARD_ELEMENT_OPTIONS = {
