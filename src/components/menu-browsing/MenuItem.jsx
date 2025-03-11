@@ -12,8 +12,8 @@ const MenuItem = ({ item }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const handleAddToCart = (finalItem) => {
-    addToCart(finalItem);
+  const handleAddToCart = (fullItem) => {
+    addToCart(fullItem || item);
     setShowModal(false);
   };
 
@@ -107,10 +107,10 @@ const MenuItem = ({ item }) => {
           }}>
             ${parseFloat(item.basePrice).toFixed(2)}
           </Typography>
-
-          <Button
-            onClick={() => setShowModal(true)}
-            variant="contained"
+          
+          <Button 
+            onClick={() => setShowModal(true)} 
+            variant="contained" 
             startIcon={<AddShoppingCartIcon />}
             sx={{
               backgroundColor: '#8a2be2',
@@ -128,15 +128,13 @@ const MenuItem = ({ item }) => {
           </Button>
         </Box>
       </CardContent>
-
-      <CustomisationModal
-        key={item._id}
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        onAdd={(finalItem) => {
-          handleAddToCart(finalItem);
-        }}
-        item={item}
+      
+      <CustomisationModal 
+        key={item._id} 
+        open={showModal} 
+        onClose={() => setShowModal(false)} 
+        onAdd={handleAddToCart} 
+        item={item} 
       />
     </Card>
   );
