@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Typography, Box, Button, Grid, 
   CircularProgress, IconButton, Tooltip
@@ -10,6 +10,7 @@ import UserForm from './UserForm';
 import UserDetail from './UserDetail';
 import { useApiDebug } from '../common/ApiDebugPanel';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../../../api/services/userService';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 const UserManagement = () => {
   const { logApiRequest } = useApiDebug();
@@ -21,6 +22,8 @@ const UserManagement = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
+  const {authToken} = useContext(AuthContext);
+
   useEffect(() => {
     loadUsers();
   }, []);
@@ -31,7 +34,7 @@ const UserManagement = () => {
       const apiUrl = '/api/users'; // Example URL - adjust as needed
       logApiRequest('GET', apiUrl);
       
-      const data = await fetchUsers();
+      const data = await fetchUsers(authToken); 
       setUsers(data);
       setError(null);
       
