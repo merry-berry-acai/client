@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
           // Check admin status from API
           try {
             console.log("Starting admin status check for:", user.uid);
-            const adminStatus = await checkIsAdmin(user.uid);
+            const adminStatus = await checkIsAdmin(user.uid, token);
             console.log("Admin status check complete. Result:", adminStatus);
             setIsAdmin(adminStatus);
             
