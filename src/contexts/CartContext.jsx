@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { MenuContext } from './MenuContext';
-import MenuItemBuilder from '../components/menu-browsing/MenuItemBuilder';
+import  MenuItemBuilder  from '../components/menu-browsing/MenuItemBuilder';
 
 export const CartContext = createContext();
 
@@ -75,15 +75,35 @@ export const CartProvider = ({ children }) => {
 
   // Add item to cart
   const addToCart = (item, selectedToppings, quantity) => {
-    if (!item) {
+    if (!item) return;
+  
+    // Check if the item already has customization (coming from modal)
+    if (item.customization && Array.isArray(item.customization)) {
+      // No need to rebuild - item is already properly formatted
+  
+      setCartItems(prev => {
+        const existingCartItemIndex = prev.findIndex(i => i.cartItemId === item.cartItemId);
+  
+        if (existingCartItemIndex > -1) {
+          // Item already exists, increase quantity
+          const updatedCartItems = [...prev];
+          updatedCartItems[existingCartItemIndex].quantity += (quantity || 1); 
+          return updatedCartItems;
+        } else {
+          // Item doesn't exist, add as new item
+          return [...prev, item];
+        }
+      });
       return;
     }
-
+  
+    // If we get here, we're dealing with the old style where item and toppings are separate
     const itemWithCustomizations = new MenuItemBuilder(item)
-      .addItemProperty('quantity', quantity)
-      .addItemProperty('customization', selectedToppings)
+      .addItemProperty('quantity', quantity || 1)  // Use passed quantity or default to 1
+      .addCustomization(selectedToppings.cuztomization)
       .addItemProperty('cartItemId', item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
       .build();
+  
 
     setCartItems(prev => {
       const existingCartItemIndex = prev.findIndex(i => i.cartItemId === itemWithCustomizations.cartItemId);
