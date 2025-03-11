@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
-  Typography, 
+  Typography,
   Button, 
   Box, 
   Container,
@@ -11,8 +11,6 @@ import {
   Drawer,
   List,
   ListItem,
-  ListItemText,
-  ListItemButton,
   Divider,
   useMediaQuery,
   useTheme
@@ -20,16 +18,15 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import { AuthContext } from '../contexts/AuthContext';
-import { CartContext } from '../contexts/CartContext';
 import ProfileDropdown from './ProfileDropdown';
 import CartDropdown from './cart/CartDropdown';
 import { getFullImageUrl } from '../utils/imageUtils';
+import NavLink from './common/NavLink';
 
 const logo = new URL('../assets/logo.jpg', import.meta.url).href;
 
 const Navigation = () => {
   const { isAuthenticated } = useContext(AuthContext);
-  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,9 +42,6 @@ const Navigation = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
 
   // If logo is a relative path, transform it to a full URL
   const logoUrl = logo.startsWith('/') ? getFullImageUrl(logo) : logo;
@@ -65,47 +59,42 @@ const Navigation = () => {
       <List>
         {navigationLinks.map((link) => (
           <ListItem key={link.title} disablePadding>
-            <ListItemButton 
-              component={Link} 
-              to={link.path}
-              onClick={handleDrawerToggle}
-              selected={isActive(link.path)}
-            >
-              <ListItemText primary={link.title} />
-            </ListItemButton>
+            <NavLink 
+              title={link.title} 
+              path={link.path} 
+              isMobile 
+              onClick={handleDrawerToggle} 
+            />
           </ListItem>
         ))}
         <Divider />
         {!isAuthenticated ? (
           <>
             <ListItem disablePadding>
-              <ListItemButton 
-                component={Link} 
-                to="/auth/login"
-                onClick={handleDrawerToggle}
-              >
-                <ListItemText primary="Login" />
-              </ListItemButton>
+              <NavLink 
+                title="Login" 
+                path="/auth/login" 
+                isMobile 
+                onClick={handleDrawerToggle} 
+              />
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton 
-                component={Link} 
-                to="/auth/register"
-                onClick={handleDrawerToggle}
-              >
-                <ListItemText primary="Sign Up" />
-              </ListItemButton>
+              <NavLink 
+                title="Sign Up" 
+                path="/auth/register" 
+                isMobile 
+                onClick={handleDrawerToggle} 
+              />
             </ListItem>
           </>
         ) : (
           <ListItem disablePadding>
-            <ListItemButton 
-              component={Link} 
-              to="/account"
-              onClick={handleDrawerToggle}
-            >
-              <ListItemText primary="My Account" />
-            </ListItemButton>
+            <NavLink 
+              title="My Account" 
+              path="/account" 
+              isMobile 
+              onClick={handleDrawerToggle} 
+            />
           </ListItem>
         )}
       </List>
@@ -175,26 +164,12 @@ const Navigation = () => {
           {!isMobile && (
             <Box sx={{ display: 'flex', gap: 1 }}>
               {navigationLinks.map((link) => (
-                <Button 
-                  key={link.title}
-                  component={Link}
-                  to={link.path}
-                  color="inherit"
-                  sx={{ 
-                    mx: 0.5,
-                    fontWeight: isActive(link.path) ? 700 : 400,
-                    borderBottom: isActive(link.path) ? 2 : 0,
-                    borderColor: 'white',
-                    borderRadius: 0,
-                    textTransform: 'none',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                      opacity: 0.9,
-                    }
-                  }}
-                >
-                  {link.title}
-                </Button>
+                <NavLink 
+                  key={link.title} 
+                  title={link.title} 
+                  path={link.path} 
+                  isMobile={false} 
+                />
               ))}
             </Box>
           )}
@@ -225,23 +200,11 @@ const Navigation = () => {
             )}
 
             {!isAuthenticated ? (
-              <Button 
-                component={Link} 
-                to="/auth/login" 
-                variant="outlined" 
-                color="inherit"
-                sx={{ 
-                  textTransform: 'none',
-                  display: { xs: 'none', sm: 'flex' },
-                  borderColor: 'white',
-                  '&:hover': {
-                    borderColor: 'white',
-                    bgcolor: 'rgba(255,255,255,0.1)',
-                  }
-                }}
-              >
-                Login
-              </Button>
+              <NavLink 
+                title="Login" 
+                path="/auth/login" 
+                isMobile={false} 
+              />
             ) : (
               <ProfileDropdown />
             )}

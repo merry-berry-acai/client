@@ -16,8 +16,10 @@ export const invalidateCache = (cacheTypes) => {
   
   cacheTypes.forEach(cacheType => {
     if (CACHE_CONFIG.keys[cacheType]) {
-      removeItem(getCacheKey(CACHE_CONFIG.keys[cacheType]));
+      console.log('invalidateCache: CACHE_CONFIG.keys[cacheType] is true for:', cacheType);
+      removeItem(getCacheKey(CACHE_CONFIG.keys[cacheType])); // removeItem is called here
       console.log(`Cache invalidated for: ${cacheType}`);
+      console.log('invalidateCache: removeItem called for:', cacheType);
     } else {
       console.warn(`Unknown cache type: ${cacheType}`);
     }

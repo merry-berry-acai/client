@@ -1,10 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { MenuContext } from './MenuContext';
+import  MenuItemBuilder  from '../components/menu-browsing/MenuItemBuilder';
+import { getCartFromStorage, saveCartToStorage } from '../utils/localStorage';
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    return getCartFromStorage();
+  });
+  
   const [cartTotal, setCartTotal] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
@@ -15,15 +20,18 @@ export const CartProvider = ({ children }) => {
   // Calculate cart total whenever cart items change
   useEffect(() => {
     const newTotal = cartItems.reduce((sum, item) => {
-      const itemPrice = parseFloat(item.basePrice || 0);
+      const itemPrice = !isNaN(parseFloat(item.basePrice)) ? parseFloat(item.basePrice) : 0;
       const toppingsPrice = (item.customization || []).reduce(
-        (toppingSum, topping) => toppingSum + (topping.price * (topping.quantity || 1)), 
+        (toppingSum, topping) => toppingSum + (!isNaN(parseFloat(topping.price)) ? parseFloat(topping.price) : 0) * (topping.quantity || 1), 
         0
       );
-      return sum + ((itemPrice + toppingsPrice) * item.quantity);
+      const itemQuantity = item.quantity || 1;
+      const validQuantity = itemQuantity > 0 ? itemQuantity : 1;
+      return sum + ((itemPrice + toppingsPrice) * validQuantity);
     }, 0);
     
     setCartTotal(parseFloat(newTotal.toFixed(2)));
+    saveCartToStorage(cartItems);
   }, [cartItems]);
 
   // Get full cart item with image and other menu data
@@ -71,25 +79,49 @@ export const CartProvider = ({ children }) => {
   };
 
   // Add item to cart
-  const addToCart = (item) => {
-    if (!item) {
+  const addToCart = (item, selectedToppings, quantity) => {
+    if (!item) return;
+  
+    // Check if the item already has customization (coming from modal)
+    if (item.customization && Array.isArray(item.customization)) {
+      // No need to rebuild - item is already properly formatted
+  
+      setCartItems(prev => {
+        const existingCartItemIndex = prev.findIndex(i => i.cartItemId === item.cartItemId);
+  
+        if (existingCartItemIndex > -1) {
+          // Item already exists, increase quantity
+          const updatedCartItems = [...prev];
+          updatedCartItems[existingCartItemIndex].quantity += (quantity || 1); 
+          return updatedCartItems;
+        } else {
+          // Item doesn't exist, add as new item
+          return [...prev, item];
+        }
+      });
       return;
     }
-    
-    // Ensure item has a cartItemId
-    const itemWithId = {
-      ...item,
-      cartItemId: item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    };
-    
+  
+    // If we get here, we're dealing with the old style where item and toppings are separate
+    const itemWithCustomizations = new MenuItemBuilder(item)
+      .addItemProperty('quantity', quantity || 1)  // Use passed quantity or default to 1
+      .addCustomization(selectedToppings.cuztomization)
+      .addItemProperty('cartItemId', item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
+      .build();
+  
+
     setCartItems(prev => {
-      // If it's an edit operation (has matching cartItemId), replace the existing item
-      if (itemWithId.cartItemId && prev.some(i => i.cartItemId === itemWithId.cartItemId)) {
-        return prev.map(i => i.cartItemId === itemWithId.cartItemId ? itemWithId : i);
+      const existingCartItemIndex = prev.findIndex(i => i.cartItemId === itemWithCustomizations.cartItemId);
+
+      if (existingCartItemIndex > -1) {
+        // Item already exists, increase quantity
+        const updatedCartItems = [...prev];
+        updatedCartItems[existingCartItemIndex].quantity += quantity; // Add to existing quantity
+        return updatedCartItems;
+      } else {
+        // Item doesn't exist, add as new item
+        return [...prev, itemWithCustomizations];
       }
-      
-      // Otherwise add as new item
-      return [...prev, itemWithId];
     });
   };
 

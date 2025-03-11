@@ -12,8 +12,8 @@ const MenuItem = ({ item }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const handleAddToCart = (selectedToppings, quantity) => {
-    addToCart(item, selectedToppings, quantity);
+  const handleAddToCart = (fullItem) => {
+    addToCart(fullItem || item);
     setShowModal(false);
   };
 

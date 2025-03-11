@@ -3,6 +3,7 @@
  * Uses centralized configuration from config.js
  */
 import { LOG_CONFIG, ENV_CONFIG } from '../config';
+import * as Sentry from "@sentry/react";
 
 /**
  * Format current timestamp for logging
@@ -73,8 +74,10 @@ export const createLogger = (context = 'default', options = {}) => {
       
       if (data) {
         console.error(`${prefix} ❌ ${message}`, data);
+        Sentry.captureException(message, { extra: data });
       } else {
         console.error(`${prefix} ❌ ${message}`);
+        Sentry.captureException(message);
       }
     },
     

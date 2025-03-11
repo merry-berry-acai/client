@@ -149,6 +149,12 @@ const AuthPage = ({ variant }) => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
+      Sentry.captureException(error, { 
+        extra: { 
+          action: "handleSubmit", 
+          authVariant: variant 
+        } 
+      });
       setError(error.message || 'Authentication failed. Please try again.');
     } finally {
       setSubmitting(false);
@@ -277,14 +283,9 @@ const AuthPage = ({ variant }) => {
                     </FormControl>
                   )}
                   
-                  <Button 
-                    type="submit" 
-                    fullWidth 
-                    variant="contained" 
-                    disabled={isSubmitting}
-                    sx={{ 
-                      mt: 3,
-                      mb: 2,
+                  <Button
+                    type="submit"
+                    sx={{
                       py: 1.5,
                       bgcolor: 'purple',
                       '&:hover': {

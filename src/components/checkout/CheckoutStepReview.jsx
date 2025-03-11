@@ -1,8 +1,8 @@
 import React, { useContext, useState } from 'react';
-import { 
-  Typography, 
-  Box, 
-  Button, 
+import {
+  Typography,
+  Box,
+  Button,
   Grid,
   CircularProgress,
   Alert
@@ -11,15 +11,16 @@ import CartItem from '../cart/CartItem';
 import CheckoutOrderSummary from './CheckoutOrderSummary';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import OrderDataBuilder from './OrderDataBuilder';
 
-const CheckoutStepReview = ({ 
-  cartItems, 
-  subtotal, 
-  tax, 
-  total, 
-  onBackToCart, 
+const CheckoutStepReview = ({
+  cartItems,
+  subtotal,
+  tax,
+  total,
+  onBackToCart,
   onNextStep,
-  onSkipToSuccess 
+  onSkipToSuccess
 }) => {
   const { currentUser } = useContext(AuthContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,19 +35,11 @@ const CheckoutStepReview = ({
     setIsSubmitting(true);
     setError(null);
 
-    // Format the order without including uid in the body
-    const orderData = {
-      items: cartItems.map(item => ({
-        product: item._id,
-        quantity: item.quantity || 1,
-        toppings: Array.isArray(item.customization) ? 
-          item.customization.map(topping => ({
-            product: topping._id,
-            quantity: topping.quantity || 1
-          })) : [],
-      })),
-      totalPrice: total
-    };
+    const orderDataBuilder = new OrderDataBuilder();
+    const orderData = orderDataBuilder
+      .setTotalPrice(total)
+      .addCartItems(cartItems)
+      .build();
 
     // Send the order data up to the parent component
     onNextStep(orderData);
@@ -67,18 +60,18 @@ const CheckoutStepReview = ({
 
         <Box sx={{ mt: 2 }}>
           {cartItems.map((item, index) => (
-            <CartItem 
-              key={item._id || index} 
-              item={item} 
-              variant="checkout" 
+            <CartItem
+              key={item._id || index}
+              item={item}
+              variant="checkout"
             />
           ))}
         </Box>
         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             onClick={onBackToCart}
-            sx={{ 
+            sx={{
               borderColor: '#8a2be2',
               color: '#8a2be2',
               '&:hover': {
@@ -90,7 +83,7 @@ const CheckoutStepReview = ({
             Back to Cart
           </Button>
           <Box>
-            <Button 
+            <Button
               variant="contained"
               onClick={handleContinue}
               disabled={isSubmitting}
@@ -101,14 +94,14 @@ const CheckoutStepReview = ({
             >
               {isSubmitting ? (
                 <React.Fragment>
-                  <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> 
+                  <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
                   Processing...
                 </React.Fragment>
               ) : (
                 "Continue to Payment"
               )}
             </Button>
-            
+
             {/* Development Fallback Button */}
             <Button
               variant="outlined"
@@ -130,10 +123,10 @@ const CheckoutStepReview = ({
         </Box>
       </Grid>
       <Grid item xs={12} md={5}>
-        <CheckoutOrderSummary 
-          subtotal={subtotal} 
-          tax={tax} 
-          total={total} 
+        <CheckoutOrderSummary
+          subtotal={subtotal}
+          tax={tax}
+          total={total}
         />
       </Grid>
     </Grid>

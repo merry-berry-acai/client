@@ -22,6 +22,7 @@ export const extractDateFromOrderId = (orderId) => {
     return date;
   } catch (e) {
     console.error('Error extracting date from order ID:', e);
+    appLogger.error('Error extracting date from order ID', e);
     return null;
   }
 };
@@ -70,7 +71,8 @@ export const calculateOrderTotal = (order) => {
 // Format order items for display
 export const formatOrderItems = (items) => {
   if (!items || !Array.isArray(items)) return 'No items';
-  
+  if (items.length === 0) return 'No items';
+
   return items.map(item => {
     const name = item.product?.name || 'Unknown Item';
     const quantity = item.quantity || 1;

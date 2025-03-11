@@ -184,9 +184,8 @@ export async function makeRequest(options) {
         throw new Error("Response validation failed");
       }
       
-      return response.data.data || response.data;
-    } 
-    catch (error) {
+      return response.data?.data || response.data || response;
+    } catch (error) {
       lastError = error;
       
       // Don't log all error details except in specific cases
@@ -234,7 +233,7 @@ export const apiHandler = async (options) => {
     // Fallback to entire response if no standard structure found
     return response;
   } catch (error) {
-    console.error(`API request failed: ${options.endpoint}`, error);
+    apiLogger.error(`API request failed: ${options.endpoint}`, error);
     throw error;
   }
 };

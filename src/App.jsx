@@ -1,23 +1,35 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { 
-  HomePage, 
-  AboutPage, 
-  MenuPage, 
-  ContactPage, 
-  CartPage, 
-  PageNotFound, 
-  ProfilePage, 
-  AuthPage, 
-  AdminPage,
-  StatusPage,
-  CheckoutPage
-} from "./pages";
+import React, { lazy, Suspense } from 'react';
+// import {
+//   HomePage,
+//   AboutPage,
+//   MenuPage,
+//   ContactPage,
+//   CartPage,
+//   PageNotFound,
+//   ProfilePage,
+//   AuthPage,
+//   AdminPage,
+//   StatusPage,
+//   CheckoutPage
+// } from "./pages";
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const MenuPage = lazy(() => import('./pages/MenuPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const PageNotFound = lazy(() => import('./pages/404Page'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const StatusPage = lazy(() => import('./pages/StatusPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { MenuProvider } from "./contexts/MenuContext";
 import { SnackbarProvider } from "./contexts/SnackbarContext";
-import { FirebaseProvider } from "./contexts/FirebaseContext";
 import { CategoryList } from "./components/menu-browsing";
 import { ErrorBoundary, ProtectedRoute, AdminRoute } from "./components";
 
@@ -26,11 +38,11 @@ function App() {
     <div className="App">
       <SnackbarProvider>
         <AuthProvider>
-          <FirebaseProvider>
-            <MenuProvider>
-              <CartProvider>
-                <Router>
-                  <ErrorBoundary>
+          <MenuProvider>
+            <CartProvider>
+              <Router>
+                <ErrorBoundary>
+                  <Suspense fallback={<div>Loading pages...</div>}>
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<HomePage />} />
@@ -58,11 +70,11 @@ function App() {
                       
                       <Route path="*" element={<PageNotFound />} />
                     </Routes>
+                  </Suspense>
                   </ErrorBoundary>
-                </Router>
-              </CartProvider>
-            </MenuProvider>
-          </FirebaseProvider>
+              </Router>
+            </CartProvider>
+          </MenuProvider>
         </AuthProvider>
       </SnackbarProvider>
     </div>

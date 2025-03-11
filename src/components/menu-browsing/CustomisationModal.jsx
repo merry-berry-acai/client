@@ -1,17 +1,18 @@
 import React, { useState, useContext } from 'react';
-import { 
+import {
   Dialog, DialogContent, Grid
 } from '@mui/material';
 import { MenuContext } from '../../contexts/MenuContext';
 import AppImage from '../common/AppImage';
+import MenuItemBuilder from './MenuItemBuilder';
 
 // Import using barrel file
-import { 
-  DebugPanel, 
-  ItemPreview, 
-  ToppingsPanel, 
-  ModalFooter, 
-  ModalHeader 
+import {
+  DebugPanel,
+  ItemPreview,
+  ToppingsPanel,
+  ModalFooter,
+  ModalHeader
 } from './customisation-modal';
 
 // Enable this for development debugging
@@ -21,18 +22,18 @@ const MAX_TOPPING_QUANTITY = 3;
 
 const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => {
   const { toppings } = useContext(MenuContext);
-  
+
   // Sanitize initial toppings to ensure they have all required properties
   const [selectedToppings, setSelectedToppings] = useState(() => {
     const existing = variant === 'edit'
       ? (Array.isArray(item.customization) ? item.customization : [])
       : (item.toppings || []);
-    
+
     // Filter out invalid entries and ensure all required properties exist
     return existing
       .filter(t => t && t._id && t.name && typeof t.price === 'number')
-      .map(t => ({ 
-        ...t, 
+      .map(t => ({
+        ...t,
         quantity: t.quantity || 1,
         // Ensure price is a valid number
         price: typeof t.price === 'number' ? t.price : parseFloat(t.price) || 0
@@ -50,10 +51,10 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
     }
     return sum + (parseFloat((t.price * t.quantity).toFixed(2)));
   }, 0);
-  
+
   // Ensure base price is a number and properly formatted
   const basePrice = parseFloat(item.basePrice || 0).toFixed(2);
-  
+
   // Calculate total with proper formatting
   const totalPrice = parseFloat(
     ((parseFloat(basePrice) + toppingsTotal) * quantity).toFixed(2)
@@ -74,8 +75,8 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
           if (DEBUG_MODE) console.log(`Maximum quantity (${MAX_TOPPING_QUANTITY}) reached for ${topping.name}`);
           return prev; // Don't update if at max
         }
-        
-        const updated = prev.map(t => 
+
+        const updated = prev.map(t =>
           t._id === topping._id ? { ...t, quantity: t.quantity + 1 } : t
         );
         if (DEBUG_MODE) console.log(`Increased quantity of ${topping.name} to ${exists.quantity + 1}`);
@@ -83,11 +84,11 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
       }
       if (DEBUG_MODE) console.log(`Added new topping: ${topping.name}`);
       // Ensure we add a complete topping object
-      return [...prev, { 
+      return [...prev, {
         _id: topping._id,
         name: topping.name,
         price: topping.price,
-        quantity: 1 
+        quantity: 1
       }];
     });
   };
@@ -102,7 +103,7 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
     setSelectedToppings(prev => {
       const exists = prev.find(t => t._id === topping._id);
       if (exists && exists.quantity > 1) {
-        const updated = prev.map(t => 
+        const updated = prev.map(t =>
           t._id === topping._id ? { ...t, quantity: t.quantity - 1 } : t
         );
         if (DEBUG_MODE) console.log(`Decreased quantity of ${topping.name} to ${exists.quantity - 1}`);
@@ -120,7 +121,7 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
       return newQty;
     });
   };
-  
+
   const decrementQuantity = () => {
     setQuantity(prev => {
       const newQty = Math.max(prev - 1, 1);
@@ -134,17 +135,16 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
     const validToppings = selectedToppings.filter(
       t => t && t._id && t.name && typeof t.price === 'number'
     );
-    
-    const finalItem = { 
-      ...item, 
-      customization: validToppings, 
-      quantity,
-      // Ensure cartItemId is preserved when editing
-      cartItemId: item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      // Include calculated prices for reference
-      calculatedItemTotal: totalPrice
-    };
-    
+
+    const menuItemBuilder = new MenuItemBuilder(item);
+    menuItemBuilder
+      .addItemProperty('quantity', quantity)
+      .addItemProperty('customization', validToppings)
+      .addItemProperty('cartItemId', item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
+      .addItemProperty('calculatedItemTotal', totalPrice);
+
+    const finalItem = menuItemBuilder.build();
+
     onAdd(finalItem);
     onClose();
   };
@@ -172,10 +172,10 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
   const title = variant === 'edit' ? `Edit ${item.name}` : `Customise Your ${item.name}`;
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
@@ -184,16 +184,16 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
         }
       }}
     >
-      <ModalHeader 
+      <ModalHeader
         title={title}
         onClose={onClose}
         showDebug={showDebug}
         setShowDebug={setShowDebug}
         debugMode={DEBUG_MODE}
       />
-      
+
       {DEBUG_MODE && <DebugPanel showDebug={showDebug} debugData={debugData} />}
-      
+
       <DialogContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
@@ -205,9 +205,9 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
               decrementQuantity={decrementQuantity}
             />
             {/* Properly pass all possible image sources */}
-            
+
           </Grid>
-          
+
           <Grid item xs={12} md={7}>
             <ToppingsPanel
               toppings={toppings}
@@ -220,7 +220,7 @@ const CustomisationModal = ({ open, onClose, onAdd, item, variant = 'new' }) => 
             />
           </Grid>
         </Grid>
-        
+
         <ModalFooter
           basePrice={basePrice}
           toppingsTotal={toppingsTotal}

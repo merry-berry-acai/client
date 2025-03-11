@@ -16,32 +16,34 @@ import { AuthContext } from '../contexts/AuthContext';
 import { makeRequest } from '../api/apiHandler';
 import Layout from '../components/Layout';
 import EducatorNote from '../components/EducatorNote';
-import { 
-  CheckoutStepReview, 
-  CheckoutStepPayment, 
-  CheckoutStepConfirmation 
+import {
+  CheckoutStepReview,
+  CheckoutStepPayment,
+  CheckoutStepConfirmation
 } from '../components/checkout';
+import ServiceFactory from '../api/services/ServiceFactory'; // Import ServiceFactory
 
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useContext(CartContext);
   const { currentUser, authToken } = useContext(AuthContext);
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
-  
+
   // Add state for Stripe integration
   const [clientSecret, setClientSecret] = useState('');
   const [orderId, setOrderId] = useState('');
   const [paymentIntent, setPaymentIntent] = useState('');
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  
+
   // Track if cart is cleared
   const cartCleared = useRef(false);
-  
+
   const steps = ['Review order', 'Payment', 'Confirmation'];
-  
+  const checkoutService = ServiceFactory.getService('checkout'); // Get CheckoutService
+
   // Calculate order summary
   const calculateTotals = () => {
     const subtotal = cartItems.reduce((total, item) => {
@@ -51,10 +53,10 @@ const CheckoutPage = () => {
         : 0;
       return total + ((item.basePrice + toppingTotal) * (item.quantity || 1));
     }, 0);
-    
+
     const tax = subtotal * 0.1; // 10% tax
     const total = subtotal + tax;
-    
+
     return { subtotal, tax, total };
   };
 
@@ -66,7 +68,7 @@ const CheckoutPage = () => {
       navigate('/cart');
       return;
     }
-    
+
     // Just set loading to false as we start at review step
     setLoading(false);
   }, [cartItems, navigate, paymentCompleted, activeStep]);
@@ -75,90 +77,80 @@ const CheckoutPage = () => {
   const handleBackToCart = () => {
     navigate('/cart');
   };
-  
+
   const handleSubmitOrder = async (orderData) => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Submit order to backend with auth token in header
-      const orderResponse = await makeRequest({
-        method: 'post',
-        endpoint: '/orders/new',
-        data: orderData,
-        authToken: authToken
-      });
-      
+
+      // Submit order to backend using CheckoutService, passing authToken
+      const orderResponse = await checkoutService.createOrder(orderData, authToken);
+
+      console.log("orderResponse:", orderResponse);
+
       // Extract order ID
-      const orderId = orderResponse?.order?._id;
+      const orderId = orderResponse?._id;
       setOrderId(orderId);
-  
-      // Create payment intent with auth token in header
-      const paymentIntentResponse = await makeRequest({
-        method: 'post',
-        endpoint: '/checkout/payment',
-        data: {
-          amount: Math.round(total * 100), // Convert to cents
-          currency: 'AUD',
-          orderId: orderId
-        },
-        authToken: authToken
-      });
-      
+
+      // Create payment intent using CheckoutService, passing authToken
+      const paymentIntentResponse = await checkoutService.createPaymentIntent({
+        amount: Math.round(total * 100), // Convert to cents
+        currency: 'AUD',
+        orderId: orderId
+      }, authToken);
+
+      console.log("paymentIntentResponse:", paymentIntentResponse);
+      console.log("paymentIntentResponse?.data:", paymentIntentResponse?.data);
+
       // Access clientSecret
       const clientSecret = paymentIntentResponse?.clientSecret;
-      const paymentIntent = paymentIntentResponse?.paymentIntentId;
 
-      if (paymentIntent) {
-        setPaymentIntent(paymentIntent);
-      } else {
-        throw new Error("Missing payment intent from response");
-      }
-      
       if (clientSecret) {
         setClientSecret(clientSecret);
         setActiveStep(1);
       } else {
-        throw new Error("Missing client secret from payment intent");
+        throw new Error("Missing client secret from payment intent response");
       }
     } catch (err) {
       console.error("Error processing order:", err);
+      Sentry.captureException(err, {
+        extra: {
+          action: "handleSubmitOrder"
+        }
+      });
       setError("There was an error processing your order. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handlePaymentSuccess = async (paymentData) => {
     try {
       console.log('Payment successful:', paymentData);
-      
+
       // Set payment as completed
       setPaymentCompleted(true);
-      
+
       // Move to confirmation step
       setActiveStep(2);
-      
+
       // Clear the cart if not already cleared
       if (!cartCleared.current) {
         clearCart();
         cartCleared.current = true;
       }
-      
-      // Record the payment with auth token in header
-      await makeRequest({
-        method: 'post',
-        endpoint: '/checkout/payment/store',
-        data: {
-          paymentIntent: paymentData.paymentIntent,
-          orderId: paymentData.orderId
-        },
-        authToken: authToken
-      });
-      
+
+      // Record the payment using CheckoutService, passing authToken
+      await checkoutService.storePaymentConfirmation(paymentData, authToken);
+
       console.log('Payment successfully recorded');
     } catch (err) {
       console.error("Error recording payment:", err);
+      Sentry.captureException(err, {
+        extra: {
+          action: "handlePaymentSuccess"
+        }
+      });
       // Even if recording fails, we still want to show success to the user
       // as the payment was processed successfully
     }

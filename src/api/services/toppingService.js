@@ -1,81 +1,34 @@
-import { makeRequest, getAuthToken } from '../apiClient';
-import { invalidateToppingsCache } from '../../utils/cacheManager';
+import BaseService from './BaseService';
 
-/**
- * Get all toppings
- */
-export async function getToppings() {
-  return makeRequest({
-    method: 'get',
-    endpoint: '/toppings/'
-  });
-}
+const ENDPOINT = '/toppings';
+const CACHE_KEY = 'toppings';
 
-/**
- * Create a new topping
- * @param {Object} toppingData - The topping data to create
- */
-export async function createTopping(toppingData) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'post',
-      endpoint: '/toppings/',
-      data: toppingData,
-      authToken
-    });
-    
-    // Invalidate toppings cache after successful creation
-    invalidateToppingsCache();
-    return result;
-  } catch (error) {
-    throw error;
+class ToppingService extends BaseService {
+  constructor() {
+    super(ENDPOINT, CACHE_KEY);
   }
+
+  getToppings = async () => {
+    return this.get();
+  };
+
+  createTopping = async (toppingData, authToken) => {
+    return this.create(toppingData, authToken);
+  };
+
+  updateTopping = async (id, toppingData, authToken) => {
+    return this.update(id, toppingData, authToken);
+  };
+
+  deleteTopping = async (id, authToken) => {
+    return this.delete(id, authToken);
+  };
 }
 
-/**
- * Update an existing topping
- * @param {string} id - Topping ID to update
- * @param {Object} toppingData - The updated topping data
- */
-export async function updateTopping(id, toppingData) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'put',
-      endpoint: `/toppings/${id}`,
-      data: toppingData,
-      authToken
-    });
-    
-    // Invalidate toppings cache after successful update
-    invalidateToppingsCache();
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
+const toppingService = new ToppingService()
+export default toppingService;
 
-/**
- * Delete a topping
- * @param {string} id - Topping ID to delete
- */
-export async function deleteTopping(id) {
-  const authToken = await getAuthToken();
-  
-  try {
-    const result = await makeRequest({
-      method: 'delete',
-      endpoint: `/toppings/${id}`,
-      authToken
-    });
-    
-    // Invalidate toppings cache after successful deletion
-    invalidateToppingsCache();
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
+export const getToppings = toppingService.getToppings.bind(toppingService)
+export const createTopping = toppingService.createTopping.bind(toppingService)
+export const updateTopping = toppingService.updateTopping.bind(toppingService)
+export const deleteTopping = toppingService.deleteTopping.bind(toppingService)

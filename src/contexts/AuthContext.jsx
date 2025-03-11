@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { auth, getCurrentUserToken } from "../utils/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { storeUserPhoto, clearUserPhoto, getUserPhoto, storeWithExpiry, getWithExpiry, removeItem } from '../utils/localStorage';
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
           // Check admin status from API
           try {
             console.log("Starting admin status check for:", user.uid);
-            const adminStatus = await checkIsAdmin(user.uid);
+            const adminStatus = await checkIsAdmin(user.uid, token);
             console.log("Admin status check complete. Result:", adminStatus);
             setIsAdmin(adminStatus);
             
@@ -85,4 +85,12 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

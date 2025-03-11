@@ -10,41 +10,28 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
  * @param {string} imageUrl - The image path stored in the database
  * @returns {string} The full URL to the image
  */
-export const getFullImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  
-  // If we're getting an object instead of a string (happens with some APIs)
-  if (typeof imageUrl === 'object') {
-    return null;
-  }
-  
+export function getFullImageUrl(imageUrl) {
   try {
-    // If it's already an absolute URL (starts with http:// or https://), return as is
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    
-    // For data URLs (base64), return as is
-    if (imageUrl.startsWith('data:')) {
-      return imageUrl;
-    }
-  
-    // Check if the image path already includes the API_BASE_URL (prevent double prefixing)
-    if (imageUrl.includes(API_BASE_URL)) {
-      return imageUrl;
+    if (!imageUrl || typeof imageUrl === 'object') {
+      return null;
     }
 
-    // For relative paths, prepend the API base URL
-    // Make sure the path starts with a slash
-    const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-    const fullUrl = `${API_BASE_URL}${path}`;
+    const url = String(imageUrl);
     
-    return fullUrl;
-  } catch (err) {
-    console.error('Error processing image URL:', err);
+    // If absolute URL or data URL, return as is
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+        }
+        const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+        const fullUrl = `${API_BASE_URL}${cleanUrl}`;
+        return fullUrl
+    
+  } catch (error) {
+    console.error('Error generating image URL:', error);
+    appLogger.error('Error generating image URL', error);
     return null;
   }
-};
+}
 
 /**
  * Gets a fallback image URL if the provided URL is invalid

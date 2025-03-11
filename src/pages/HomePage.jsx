@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Container, Box, Typography, Button, Grid, Card, CardContent, Divider, Paper, Chip } from "@mui/material";
 import Layout from "../components/Layout";
 import MenuItem from "../components/menu-browsing/MenuItem";
-import { getFeaturedItems } from "../api/mockApi";
 import { MenuContext } from "../contexts/MenuContext";
 
 const logo = new URL("../assets/logo.jpg", import.meta.url).href;

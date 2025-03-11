@@ -6,6 +6,8 @@ import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { MenuContext } from '../../contexts/MenuContext';
 import { createMenuItem, updateMenuItem, deleteMenuItem } from '../../api/apiHandler';
 import { toast } from 'react-toastify';
+import ServiceFactory from '../../api/services/ServiceFactory';
+import { AuthContext } from '../../contexts/AuthContext';
 
 // Import our components using barrel files
 import { 
@@ -16,6 +18,7 @@ import {
 
 const ItemManager = () => {
   const { menuItems, categories, refreshMenuData, loadingMenu } = useContext(MenuContext);
+  const { authToken } = useContext(AuthContext);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -157,23 +160,21 @@ const ItemManager = () => {
         }
       } else if (formMode === 'edit') {
         // For edit mode, handle image updates properly
-        if (!imageFile && !formData.image) {
-          // If image was explicitly cleared, send empty string
-          itemData.image = '';
-        } else if (!imageFile && formData.image === currentItem.image) {
+        if (!imageFile && formData.image === currentItem.image) {
           // If using the original image (no changes), don't include the image field
           // to avoid unnecessary updates
           delete itemData.image;
         }
         // Otherwise, the new URL from formData.image will be sent
       }
+      const menuService = ServiceFactory.getService('menuItems');
       
       if (formMode === 'create') {
-        await createMenuItem(itemData);
-        toast.success('Menu item created successfully');
+        await menuService.createMenuItem(menuItemData, authToken);
+        toast.success('Menu Item created successfully');
       } else if (formMode === 'edit' && currentItem) {
-        await updateMenuItem(currentItem._id, itemData);
-        toast.success('Menu item updated successfully');
+        await menuService.updateMenuItem(currentItem._id, menuItemData, authToken);
+        toast.success('Menu Item updated successfully');
       }
       
       // Refresh menu data from database after successful operation
@@ -197,7 +198,8 @@ const ItemManager = () => {
     
     try {
       setLoading(true);
-      await deleteMenuItem(currentItem._id);
+      const menuService = ServiceFactory.getService('menuItems');
+      await menuService.deleteMenuItem(currentItem._id, authToken);
       toast.success('Menu item deleted successfully');
       
       // Refresh menu data after deletion
