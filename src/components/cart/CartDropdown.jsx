@@ -24,7 +24,15 @@ import CustomizationModal from '../menu-browsing/CustomisationModal';
 import AppImage from '../common/AppImage';
 
 const CartDropdown = () => {
-  const { cartItems, cartTotal, removeFromCart, onUpdateCartItem, getFullCartItem } = useContext(CartContext);
+  // Add fallback with default values
+  const { 
+    cartItems = [], 
+    cartTotal = 0, 
+    removeFromCart = () => {}, 
+    onUpdateCartItem = () => {}, 
+    getFullCartItem = (item) => item 
+  } = useContext(CartContext) || {};
+  
   const [anchorEl, setAnchorEl] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const navigate = useNavigate();
