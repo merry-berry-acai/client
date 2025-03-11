@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { MenuContext } from './MenuContext';
+import MenuItemBuilder from '../components/menu-browsing/MenuItemBuilder';
 
 export const CartContext = createContext();
 
