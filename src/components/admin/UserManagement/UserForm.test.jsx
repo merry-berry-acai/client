@@ -66,7 +66,8 @@ describe('<UserForm />', () => {
 
   it('calls onClose when Cancel button is clicked', () => {
     render(<UserForm open onClose={mockOnClose} onSave={mockOnSave} />);
-    userEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    const dialog = screen.getByRole('dialog', { name: /add new user/i }); // Assuming add mode for cancel button test
+    userEvent.click(dialog.getByRole('button', { name: /cancel/i }));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
