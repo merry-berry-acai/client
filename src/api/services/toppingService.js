@@ -25,4 +25,10 @@ class ToppingService extends BaseService {
   };
 }
 
-export default new ToppingService();
+const toppingService = new ToppingService()
+export default toppingService;
+
+export const getToppings = toppingService.getToppings.bind(toppingService)
+export const createTopping = toppingService.createTopping.bind(toppingService)
+export const updateTopping = toppingService.updateTopping.bind(toppingService)
+export const deleteTopping = toppingService.deleteTopping.bind(toppingService)

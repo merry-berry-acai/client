@@ -33,4 +33,16 @@ class MenuService extends BaseService {
   };
 }
 
-export default new MenuService();
+const menuService = new MenuService();
+
+// Export the instance as default
+export default menuService;
+
+// Add named exports for individual methods
+export const getMenuItems = menuService.getMenuItems.bind(menuService);
+export const getFeaturedItems = menuService.getFeaturedItems.bind(menuService);
+export const getItemsInCategory = menuService.getItemsInCategory.bind(menuService);
+export const createMenuItem = menuService.createMenuItem.bind(menuService);
+export const updateMenuItem = menuService.updateMenuItem.bind(menuService);
+export const deleteMenuItem = menuService.deleteMenuItem.bind(menuService);
+

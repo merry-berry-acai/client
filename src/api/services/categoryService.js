@@ -25,4 +25,11 @@ class CategoryService extends BaseService {
   };
 }
 
-export default new CategoryService();
+const categoryService = new CategoryService()
+
+export default categoryService
+
+export const getCategories = categoryService.getCategories.bind(categoryService);
+export const createCategory = categoryService.createCategory.bind(categoryService);
+export const updateCategory = categoryService.updateCategory.bind(categoryService);
+export const deleteCategory = categoryService.deleteCategory.bind(categoryService);

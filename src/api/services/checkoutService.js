@@ -16,7 +16,7 @@ class CheckoutService extends BaseService {
   }
 
   async createPaymentIntent(paymentData, authToken) {
-    return this.apiCall('post', '/payment', paymentData, true, authToken); // Create payment intent endpoint
+    return this.apiCall('post', `${ENDPOINT}/payment`, paymentData, true, authToken); // Create payment intent endpoint
   }
 
   async storePaymentConfirmation(paymentData, authToken) {
@@ -24,4 +24,12 @@ class CheckoutService extends BaseService {
   }
 }
 
-export default new CheckoutService();
+const checkoutService = new CheckoutService();
+
+
+export default CheckoutService
+
+export const processPayment = checkoutService.processPayment.bind(checkoutService);
+export const createOrder = checkoutService.createOrder.bind(checkoutService);
+export const createPaymentIntent = checkoutService.createPaymentIntent.bind(checkoutService);
+export const storePaymentConfirmation = checkoutService.storePaymentConfirmation.bind(checkoutService);
