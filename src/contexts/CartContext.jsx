@@ -1,11 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { MenuContext } from './MenuContext';
 import  MenuItemBuilder  from '../components/menu-browsing/MenuItemBuilder';
+import { getCartFromStorage, saveCartToStorage } from '../utils/localStorage';
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    return getCartFromStorage();
+  });
+  
   const [cartTotal, setCartTotal] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
@@ -27,6 +31,7 @@ export const CartProvider = ({ children }) => {
     }, 0);
     
     setCartTotal(parseFloat(newTotal.toFixed(2)));
+    saveCartToStorage(cartItems);
   }, [cartItems]);
 
   // Get full cart item with image and other menu data
