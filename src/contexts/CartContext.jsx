@@ -15,12 +15,14 @@ export const CartProvider = ({ children }) => {
   // Calculate cart total whenever cart items change
   useEffect(() => {
     const newTotal = cartItems.reduce((sum, item) => {
-      const itemPrice = parseFloat(item.basePrice || 0);
+      const itemPrice = !isNaN(parseFloat(item.basePrice)) ? parseFloat(item.basePrice) : 0;
       const toppingsPrice = (item.customization || []).reduce(
-        (toppingSum, topping) => toppingSum + (topping.price * (topping.quantity || 1)), 
+        (toppingSum, topping) => toppingSum + (!isNaN(parseFloat(topping.price)) ? parseFloat(topping.price) : 0) * (topping.quantity || 1), 
         0
       );
-      return sum + ((itemPrice + toppingsPrice) * item.quantity);
+      const itemQuantity = item.quantity || 1;
+      const validQuantity = itemQuantity > 0 ? itemQuantity : 1;
+      return sum + ((itemPrice + toppingsPrice) * validQuantity);
     }, 0);
     
     setCartTotal(parseFloat(newTotal.toFixed(2)));
