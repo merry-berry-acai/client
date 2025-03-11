@@ -2,6 +2,7 @@ import BaseService from './BaseService';
 import { API_CONFIG, AUTH_CONFIG } from '../../config';
 import { dbLogger as log } from '../../utils/logger';
 import { invalidateUsersCache } from '../../utils/cacheManager';
+import * as Sentry from '@sentry/react';
 
 const ADMIN_UID = AUTH_CONFIG.adminUID;
 
@@ -77,7 +78,7 @@ class UserService extends BaseService {
    * Check if a user is an admin
    * @param {string} uid - User ID to check
    */
-  async checkIsAdmin(uid) {
+  async checkIsAdmin(uid, authToken) {
     if (!uid) return false;
 
     if (uid === ADMIN_UID) {
@@ -86,8 +87,8 @@ class UserService extends BaseService {
     }
 
     try {
-      const response = await this.apiCall('get', `/${uid}/role`, null, true, null, { retries: 0, uidHeader: uid });
-      return response && response.role === 'admin';
+      const response = await this.apiCall('get', `/users/${uid}/role`, null, true, authToken, { retries: 0, uidHeader: uid });
+      return response === 'admin';
     } catch (error) {
       console.error("API admin check failed:", error.message);
       Sentry.captureException(error, {
@@ -125,9 +126,9 @@ class UserService extends BaseService {
    * Fetches all users (admin only)
    * @returns {Promise<Array>} Array of user objects
    */
-  async fetchUsers() {
+  async fetchUsers(authToken) {
     try {
-      return await this.apiCall('get', '/users/all', null, true);
+      return await this.apiCall('get', '/users/all', null, true, authToken);
     } catch (error) {
       log.error('Error fetching users:', error);
       Sentry.captureException(error, {
