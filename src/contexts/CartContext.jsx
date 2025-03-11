@@ -73,28 +73,28 @@ export const CartProvider = ({ children }) => {
   };
 
   // Add item to cart
-  const addToCart = (item) => {
+  const addToCart = (item, selectedToppings, quantity) => {
     if (!item) {
       return;
     }
-    
-    // Ensure item has a cartItemId
-    const itemWithId = {
-      ...item,
-      cartItemId: item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    };
-    
+
+    const itemWithCustomizations = new MenuItemBuilder(item)
+      .addItemProperty('quantity', quantity)
+      .addItemProperty('customization', selectedToppings)
+      .addItemProperty('cartItemId', item.cartItemId || `${item._id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
+      .build();
+
     setCartItems(prev => {
-      const existingCartItemIndex = prev.findIndex(i => i._id === itemWithId._id);
+      const existingCartItemIndex = prev.findIndex(i => i.cartItemId === itemWithCustomizations.cartItemId);
 
       if (existingCartItemIndex > -1) {
         // Item already exists, increase quantity
         const updatedCartItems = [...prev];
-        updatedCartItems[existingCartItemIndex].quantity += 1;
+        updatedCartItems[existingCartItemIndex].quantity += quantity; // Add to existing quantity
         return updatedCartItems;
       } else {
         // Item doesn't exist, add as new item
-        return [...prev, itemWithId];
+        return [...prev, itemWithCustomizations];
       }
     });
   };
