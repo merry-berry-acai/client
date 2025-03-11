@@ -122,7 +122,7 @@ const CheckoutStepPayment = ({
                     <ListItem sx={{ py: 1, px: 0 }}>
                       <ListItemText 
                         primary={item.name}
-                        secondary={`Qty: ${item.quantity}`}
+                        secondary={`Qty: ${item.quantity || 1}`}
                         primaryTypographyProps={{ fontWeight: 'medium' }}
                       />
                       <Typography variant="body2" fontWeight="medium">
