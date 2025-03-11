@@ -23,7 +23,8 @@ export function getFullImageUrl(imageUrl) {
       return url;
         }
         const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-        return `${API_BASE_URL}/${cleanUrl}`;
+        const fullUrl = `${API_BASE_URL}${cleanUrl}`;
+        return fullUrl
     
   } catch (error) {
     console.error('Error generating image URL:', error);
