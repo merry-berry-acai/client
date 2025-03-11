@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
-  Typography, 
+  Typography,
+  Button, 
   Box, 
   Container,
   IconButton,
