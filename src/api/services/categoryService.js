@@ -27,7 +27,7 @@ class CategoryService extends BaseService {
 
 const categoryService = new CategoryService()
 
-export default categoryService
+export default CategoryService
 
 export const getCategories = categoryService.getCategories.bind(categoryService);
 export const createCategory = categoryService.createCategory.bind(categoryService);
