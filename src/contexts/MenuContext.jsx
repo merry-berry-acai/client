@@ -1,8 +1,10 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
-import { getMenuItems, getCategories, getToppings, getFeaturedItems } from "../api/apiHandler";
 import { getCacheKey, needsRefresh, updateCache } from "../utils/cacheManager";
 import { CACHE_CONFIG } from "../config";
 import { getWithExpiry } from "../utils/localStorage";
+import ServiceFactory from '../api/services/ServiceFactory'; // Import ServiceFactory
+
+// Added another comment to trigger re-render
 
 export const MenuContext = createContext();
 
@@ -14,6 +16,10 @@ export const MenuProvider = ({ children }) => {
   const [loadingMenu, setLoadingMenu] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+
+  const menuService = ServiceFactory.getService('menuItems'); // Get MenuService
+  const categoryService = ServiceFactory.getService('categories'); // Get CategoryService
+  const toppingService = ServiceFactory.getService('toppings'); // Get ToppingService
 
   // Function to fetch data from API and update both state and cache
   const fetchAndCacheData = useCallback(async (forceRefresh = false) => {
@@ -62,7 +68,7 @@ export const MenuProvider = ({ children }) => {
       
       if (needsLoading.menuItems) {
         promises.push(
-          getMenuItems().then(data => {
+          menuService.getMenuItems().then(data => { // Use menuService
             setMenuItems(data);
             updateCache('menuItems', data);
           })
@@ -71,7 +77,7 @@ export const MenuProvider = ({ children }) => {
       
       if (needsLoading.categories) {
         promises.push(
-          getCategories().then(data => {
+          categoryService.getCategories().then(data => { // Use categoryService
             setCategories(data);
             updateCache('categories', data);
           })
@@ -80,7 +86,7 @@ export const MenuProvider = ({ children }) => {
       
       if (needsLoading.toppings) {
         promises.push(
-          getToppings().then(data => {
+          toppingService.getToppings().then(data => { // Use toppingService
             setToppings(data);
             updateCache('toppings', data);
           })
@@ -89,7 +95,7 @@ export const MenuProvider = ({ children }) => {
       
       if (needsLoading.featuredItems) {
         promises.push(
-          getFeaturedItems().then(data => {
+          menuService.getFeaturedItems().then(data => { // Use menuService for featured items
             setFeaturedItems(data);
             updateCache('featuredItems', data);
           })
@@ -107,7 +113,7 @@ export const MenuProvider = ({ children }) => {
     } finally {
       setLoadingMenu(false);
     }
-  }, []);
+  }, [menuService, categoryService, toppingService]); // Add service dependencies
 
   // Function to refresh specific menu data type (can be called from admin panels)
   const refreshMenuDataByType = useCallback((dataType) => {
