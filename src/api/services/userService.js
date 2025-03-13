@@ -164,7 +164,7 @@ class UserService extends BaseService {
    */
   async updateUser(userId, userData) {
     try {
-      const result = await this.apiCall('put', `/${userId}`, userData, true); // Corrected endpoint
+      const result = await this.apiCall('put', `/users/${userId}`, userData, true); // Corrected endpoint
       invalidateUsersCache();
       return result;
     } catch (error) {
@@ -180,7 +180,7 @@ class UserService extends BaseService {
    */
   async deleteUser(userId) {
     try {
-      const result = await this.apiCall('delete', `/${userId}`, null, true); // Corrected endpoint
+      const result = await this.apiCall('delete', `/users/${userId}`, null, true); // Corrected endpoint
       invalidateUsersCache();
       return result;
     } catch (error) {
@@ -205,7 +205,7 @@ class UserService extends BaseService {
 }
 
 const userService = new UserService();
-export default userService;
+export default UserService;
 
 // Add named exports for individual methods
 export const sendUserToDB = userService.sendUserToDB.bind(userService);
@@ -216,4 +216,3 @@ export const createUser = userService.createUser.bind(userService);
 export const updateUser = userService.updateUser.bind(userService);
 export const deleteUser = userService.deleteUser.bind(userService);
 export const fetchUserById = userService.fetchUserById.bind(userService);
-
