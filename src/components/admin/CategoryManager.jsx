@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { AuthContext } from '../../contexts/AuthContext';
 import {
   Box, Button, Typography, Alert, CircularProgress, Snackbar
 } from '@mui/material';
@@ -122,13 +123,13 @@ const CategoryManager = () => {
       }
 
       const categoryService = ServiceFactory.getService('categories');
-      const { authToken } = useContext(AuthContext); // Get authToken
+      
 
       if (formMode === 'create') {
-        await categoryService.createCategory(categoryData, authToken); // Pass authToken
+        await categoryService.createCategory(categoryData);
         toast.success('Category created successfully');
       } else if (formMode === 'edit' && currentCategory) {
-        await categoryService.updateCategory(currentCategory._id, categoryData, authToken); // Pass authToken
+        await categoryService.updateCategory(currentCategory._id, categoryData);
         toast.success('Category updated successfully');
       }
 
@@ -153,8 +154,7 @@ const CategoryManager = () => {
     try {
       setLoading(true);
       const categoryService = ServiceFactory.getService('categories');
-      const { authToken } = useContext(AuthContext); // Get authToken
-      await categoryService.deleteCategory(currentCategory._id, authToken); // Pass authToken
+      await categoryService.deleteCategory(currentCategory._id); // Pass authToken
       toast.success('Category deleted successfully');
 
       // Refresh data after deletion
