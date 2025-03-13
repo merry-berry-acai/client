@@ -17,11 +17,22 @@ class BaseService {
   }
 
   async update(id, data) {
-    return this.apiCall('put', `${this.endpoint}/${id}`, data, true);
+    try {
+      // Try PATCH first (for partial updates)
+      return await this.apiCall('patch', `${this.endpoint}/${id}`, data, true);
+    } catch (patchError) {
+      try {
+        // If PATCH failed, try PUT as fallback (for full resource replacement)
+        return await this.apiCall('put', `${this.endpoint}/${id}`, data, true);
+      } catch (putError) {
+        // If both methods fail, throw the original error
+        throw patchError;
+      }
+    }
   }
 
   async delete(id) {
-    return this.apiCall('delete', `${this.endpoint}/${id}`);
+    return this.apiCall('delete', `${this.endpoint}/${id}`, null, true);
   }
 
   async apiCall(method, endpoint, data = null, requiresAuth = false, authToken = null) {
@@ -31,9 +42,9 @@ class BaseService {
         endpoint,
         data,
         requiresAuth,
-        authToken // Conditionally include authToken
+        authToken, // Conditionally include authToken
       });
-      if (this.cacheKey && (method === 'post' || method === 'put' || method === 'delete')) {
+      if (this.cacheKey && (method === 'post' || method === 'patch' || method === 'delete')) {
         invalidateCache([this.cacheKey]);
       }
       return result;
