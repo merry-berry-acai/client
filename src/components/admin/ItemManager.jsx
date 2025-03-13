@@ -170,10 +170,10 @@ const ItemManager = () => {
       const menuService = ServiceFactory.getService('menuItems');
       
       if (formMode === 'create') {
-        await menuService.createMenuItem(menuItemData, authToken);
+        await menuService.createMenuItem(itemData, authToken);
         toast.success('Menu Item created successfully');
       } else if (formMode === 'edit' && currentItem) {
-        await menuService.updateMenuItem(currentItem._id, menuItemData, authToken);
+        await menuService.updateMenuItem(currentItem._id, itemData, authToken);
         toast.success('Menu Item updated successfully');
       }
       
@@ -199,6 +199,7 @@ const ItemManager = () => {
     try {
       setLoading(true);
       const menuService = ServiceFactory.getService('menuItems');
+      console.log("authToken:", authToken); // Log authToken here
       await menuService.deleteMenuItem(currentItem._id, authToken);
       toast.success('Menu item deleted successfully');
       
