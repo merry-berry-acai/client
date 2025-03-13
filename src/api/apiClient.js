@@ -134,8 +134,9 @@ export async function makeRequest(options) {
       
       // Create headers with auth token or UID if provided
       const headers = {};
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
+      const currentAuthToken = await getAuthToken(); // Get auth token here
+      if (currentAuthToken) {
+        headers['Authorization'] = `Bearer ${currentAuthToken}`;
         // Don't log auth token details to reduce noise
       }
       if (uidHeader) {
